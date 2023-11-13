@@ -1,8 +1,10 @@
+mod parsing;
+
 use theorem_prover::{lang::{Formula::*, Term::*, Pred, Var}, boxed};
+use parsing::parse_formula;
 
 fn main() {
     // TODO: Parse input formula into F of type Formula and feed it into is_valid()
-
     // TODO: maybe use macros to make it easier to read and write formulas
     // F : ¬(∃y.(∀z.((p(z, y)) ↔ (¬(∃x.((p(z, x)) ∧ (p(x, z))))))))
     let pzy = Pred(Pred::new("p", vec![boxed!(Var(Var::new("z"))), boxed!(Var(Var::new("y")))]));
@@ -16,5 +18,10 @@ fn main() {
                 boxed!(Neg(boxed!(Exists(Var::new("x"), boxed!(p_conj))))))
         ))))));
 
-    theorem_prover::is_valid(formula);
+    println!("{formula}");
+    if theorem_prover::is_valid(formula) {
+        println!(" is valid!");
+    } else {
+        println!(" may be valid or invalid. Since first order logic is undecidable, we sometimes don't know.");
+    }
 }

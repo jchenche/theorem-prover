@@ -1,4 +1,3 @@
-use crate::unification::most_general_unifier;
 use crate::lang::Formula;
 
 pub type Clause = Vec<Formula>;

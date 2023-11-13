@@ -13,6 +13,7 @@ macro_rules! boxed {
 }
 
 // Example of how to transform the formula (not the most efficient but it's the most readable)
+// These will mostly be defined in clausal.rs
 fn and_to_or(formula: Box<Formula>) -> Box<Formula> {
     match *formula {
         Formula::Pred(pred) => boxed!(Formula::Pred(pred)),
@@ -29,7 +30,6 @@ fn and_to_or(formula: Box<Formula>) -> Box<Formula> {
 }
 
 pub fn is_valid(formula: Formula) -> bool {
-    println!("{}", formula);
     // let example_conversion = and_to_or(boxed!(formula));
     // println!("{}", example_conversion);
     let negated = Formula::Neg(boxed!(formula));
