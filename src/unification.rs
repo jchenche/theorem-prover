@@ -25,7 +25,7 @@ mod tests {
     #[test]
     fn test_most_general_unifier_1() {
         let p_a_y = Pred!("p", [Obj!("a"), Var!("y")]); // p(a, y)
-        let p_x_fx = Pred!("p", [Obj!("a"), Fun!("f", [Var!("x")])]); // p(x, f(x))
+        let p_x_fx = Pred!("p", [Obj!("x"), Fun!("f", [Var!("x")])]); // p(x, f(x))
         let unifier = most_general_unifier(vec![p_a_y, p_x_fx]);
         assert_eq!(unifier.get(&Var::new("x")), Some(&Obj!("a")));
         assert_eq!(unifier.get(&Var::new("y")), Some(&Fun!("f", [Var!("a")])));
