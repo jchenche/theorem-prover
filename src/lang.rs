@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Formula {
     Pred(Pred),
     True,
@@ -14,30 +14,30 @@ pub enum Formula {
     Exists(Var, Box<Formula>)
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Pred {
     id: String,
     args: Vec<Box<Term>>
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Term {
     Obj(Obj),
     Var(Var),
     Fun(Fun)
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Obj {
     id: String
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Var {
     id: String
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Fun {
     id: String,
     args: Vec<Box<Term>>
