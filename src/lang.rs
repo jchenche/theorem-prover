@@ -131,3 +131,80 @@ impl Display for Fun {
         write!(f, ")")
     }
 }
+
+#[macro_export]
+macro_rules! And {
+    ($left:expr, $right:expr) => {
+        Formula::And(Box::new($left), Box::new($right))
+    };
+}
+
+#[macro_export]
+macro_rules! Or {
+    ($left:expr, $right:expr) => {
+        Formula::Or(Box::new($left), Box::new($right))
+    };
+}
+
+#[macro_export]
+macro_rules! Imply {
+    ($left:expr, $right:expr) => {
+        Formula::Imply(Box::new($left), Box::new($right))
+    };
+}
+
+#[macro_export]
+macro_rules! Iff {
+    ($left:expr, $right:expr) => {
+        Formula::Iff(Box::new($left), Box::new($right))
+    };
+}
+
+#[macro_export]
+macro_rules! Neg {
+    ($subformula:expr) => {
+        Formula::Neg(Box::new($subformula))
+    };
+}
+
+#[macro_export]
+macro_rules! Forall {
+    ($var:expr, $subformula:expr) => {
+        Formula::Forall(Var::new($var), Box::new($subformula))
+    };
+}
+
+#[macro_export]
+macro_rules! Exists {
+    ($var:expr, $subformula:expr) => {
+        Formula::Exists(Var::new($var), Box::new($subformula))
+    };
+}
+
+#[macro_export]
+macro_rules! Pred {
+    ($id:expr, [$($arg:expr),*]) => {
+        Formula::Pred(Pred::new($id, vec![$(Box::new(Var!($arg))),*]))
+    };
+}
+
+#[macro_export]
+macro_rules! Obj {
+    ($name:expr) => {
+        Term::Obj(Obj::new($name))
+    };
+}
+
+#[macro_export]
+macro_rules! Var {
+    ($name:expr) => {
+        Term::Var(Var::new($name))
+    };
+}
+
+#[macro_export]
+macro_rules! Fun {
+    ($id:expr, [$($arg:expr),*]) => {
+        Formula::Fun(Fun::new($id, vec![$(Box::new(Var!($arg))),*]))
+    };
+}
