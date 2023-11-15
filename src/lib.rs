@@ -1,9 +1,9 @@
 use lang::Formula;
 
-pub mod lang;
 mod clausal;
-mod unification;
+pub mod lang;
 mod resolution;
+mod unification;
 
 // Example of how to transform the formula (not the most efficient but it's the most readable)
 // These will mostly be defined in clausal.rs
