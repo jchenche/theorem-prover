@@ -8,6 +8,6 @@ pub fn most_general_unifier(formulas: Vec<Formula>) -> Unifier {
     todo!()
 }
 
-pub fn substitute(formula: Formula, unifier: Unifier) -> Box<Formula> {
+pub fn substitute(formula: Formula, unifier: Unifier) -> Formula {
     todo!()
 }
