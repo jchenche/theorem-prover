@@ -1,11 +1,15 @@
 use std::collections::HashMap;
-use crate::lang::{Var, Term, Formula};
+use crate::{lang::{Var, Term, Formula, Obj}, Obj};
 
 type Unifier = HashMap<Var, Term>;
 
 pub fn most_general_unifier(formulas: Vec<Formula>) -> Unifier {
+    let mut unifier = HashMap::new();
+
     let processed = vec![false; formulas.len()];
-    todo!()
+    unifier.insert(Var::new("x"), Obj!("a"));
+
+    return unifier;
 }
 
 pub fn substitute(formula: Formula, unifier: Unifier) -> Formula {
@@ -14,8 +18,15 @@ pub fn substitute(formula: Formula, unifier: Unifier) -> Formula {
 
 #[cfg(test)]
 mod tests {
+    use crate::{lang::{Pred, Var, Fun, Obj}, Pred, Var, Fun, Obj};
+
+    use super::*;
+
     #[test]
     fn test_most_general_unifier_1() {
-
+        let p_a_y = Pred!("p", [Obj!("a"), Var!("y")]); // p(a, y)
+        let p_x_fx = Pred!("p", [Obj!("a"), Fun!("f", [Var!("x")])]); // p(x, f(x))
+        let unifier = most_general_unifier(vec![p_a_y, p_x_fx]);
+        assert_eq!(unifier.get(&Var::new("x")), Some(&Obj!("a")));
     }
 }

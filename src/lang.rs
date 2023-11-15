@@ -20,24 +20,24 @@ pub struct Pred {
     args: Vec<Box<Term>>
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Term {
     Obj(Obj),
     Var(Var),
     Fun(Fun)
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Obj {
     id: String
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Var {
     id: String
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Fun {
     id: String,
     args: Vec<Box<Term>>
@@ -184,7 +184,7 @@ macro_rules! Exists {
 #[macro_export]
 macro_rules! Pred {
     ($id:expr, [$($arg:expr),*]) => {
-        Formula::Pred(Pred::new($id, vec![$(Box::new(Var!($arg))),*]))
+        Formula::Pred(Pred::new($id, vec![$(Box::new($arg)),*]))
     };
 }
 
@@ -205,6 +205,6 @@ macro_rules! Var {
 #[macro_export]
 macro_rules! Fun {
     ($id:expr, [$($arg:expr),*]) => {
-        Formula::Fun(Fun::new($id, vec![$(Box::new(Var!($arg))),*]))
+        Term::Fun(Fun::new($id, vec![$(Box::new($arg)),*]))
     };
 }

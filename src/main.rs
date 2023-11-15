@@ -10,8 +10,8 @@ fn main() {
     let formula =
         Neg!(Exists!("y", Forall!("z",
             Iff!(
-                Pred!("p", ["z", "y"]),
-                Neg!(Exists!("x", And!(Pred!("p", ["z", "x"]), Pred!("p", ["x", "z"]))))
+                Pred!("p", [Var!("z"), Var!("y")]),
+                Neg!(Exists!("x", And!(Pred!("p", [Var!("z"), Var!("x")]), Pred!("p", [Var!("x"), Var!("z")]))))
             )
         )));
 
