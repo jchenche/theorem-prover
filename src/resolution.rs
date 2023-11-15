@@ -6,6 +6,7 @@ use crate::{
 pub fn resolve(mut clauses: Vec<Clause>) -> bool {
     let mut resolved = Vec::new();
 
+    // TODO: add termination logic to prevent infinite loop (e.g. time limit or max number of clauses)
     loop {
         let mut new_clauses = Vec::new();
 
