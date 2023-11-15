@@ -1,5 +1,5 @@
 use crate::{
-    lang::Clause,
+    lang::{Clause, Formula},
     unification::{most_general_unifier, substitute},
 };
 
@@ -44,6 +44,11 @@ fn resolve_clauses(clause1: &Clause, clause2: &Clause) -> Vec<Clause> {
     // pick one formula from each clause sequentially for resolution
     for formula1 in clause1.get_formulas() {
         for formula2 in clause2.get_formulas() {
+            // skip if both or none of the formulas are in the negation form
+            if !one_and_only_one_negated(formula1, formula2) {
+                continue;
+            }
+
             // unify 2 formulas if possible and then use mgu to obtain a new clause
             if let Some(unifier) = most_general_unifier(vec![formula1, formula2]) {
                 let mut new_formulas = Vec::new();
@@ -67,4 +72,9 @@ fn resolve_clauses(clause1: &Clause, clause2: &Clause) -> Vec<Clause> {
     }
 
     new_clauses
+}
+
+fn one_and_only_one_negated(formula1: &Formula, formula2: &Formula) -> bool {
+    (matches!(formula1, Formula::Neg(_)) && !matches!(formula2, Formula::Neg(_)))
+        || (!matches!(formula1, Formula::Neg(_)) && matches!(formula2, Formula::Neg(_)))
 }
