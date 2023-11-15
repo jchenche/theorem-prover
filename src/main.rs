@@ -1,4 +1,7 @@
-use theorem_prover::{lang::{Formula, Pred, Term, Var}, Neg, Exists, Forall, Iff, And, Pred, Var};
+use theorem_prover::{
+    lang::{Formula, Pred, Term, Var},
+    And, Exists, Forall, Iff, Neg, Pred, Var,
+};
 
 mod parsing;
 
@@ -7,13 +10,22 @@ fn main() {
     // Symbols are forall, exists, ~, /\, \/, ->, <->, true, false, and arbitrary letters p, f, c, x, Jane, etc...
     // Every connectives always wrap their subformulas with parenthesis so we don't have to deal with operator precedence
     // ¬(∃y.(∀z.((p(z, y)) ↔ (¬(∃x.((p(z, x)) ∧ (p(x, z))))))))
-    let formula =
-        Neg!(Exists!("y", Forall!("z",
+    let formula = Neg!(Exists!(
+        "y",
+        Forall!(
+            "z",
             Iff!(
                 Pred!("p", [Var!("z"), Var!("y")]),
-                Neg!(Exists!("x", And!(Pred!("p", [Var!("z"), Var!("x")]), Pred!("p", [Var!("x"), Var!("z")]))))
+                Neg!(Exists!(
+                    "x",
+                    And!(
+                        Pred!("p", [Var!("z"), Var!("x")]),
+                        Pred!("p", [Var!("x"), Var!("z")])
+                    )
+                ))
             )
-        )));
+        )
+    ));
 
     println!("{formula}");
     if theorem_prover::is_valid(formula) {

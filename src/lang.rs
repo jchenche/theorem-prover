@@ -1,6 +1,9 @@
-use std::fmt::Display;
+use std::{
+    fmt::Display,
+    sync::atomic::{AtomicUsize, Ordering},
+};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Formula {
     Pred(Pred),
     True,
@@ -11,59 +14,88 @@ pub enum Formula {
     Imply(Box<Formula>, Box<Formula>),
     Iff(Box<Formula>, Box<Formula>),
     Forall(Var, Box<Formula>),
-    Exists(Var, Box<Formula>)
+    Exists(Var, Box<Formula>),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Pred {
     id: String,
-    args: Vec<Box<Term>>
+    args: Vec<Box<Term>>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Term {
     Obj(Obj),
     Var(Var),
-    Fun(Fun)
+    Fun(Fun),
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Obj {
-    id: String
+    id: String,
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Var {
-    id: String
+    id: String,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Fun {
     id: String,
-    args: Vec<Box<Term>>
+    args: Vec<Box<Term>>,
+}
+
+static CLAUSE_COUNTER: AtomicUsize = AtomicUsize::new(0);
+pub struct Clause {
+    id: usize,
+    formulas: Vec<Formula>,
 }
 
 impl Pred {
     pub fn new(id: &str, args: Vec<Box<Term>>) -> Self {
-        Self { id: id.to_string(), args }
+        Self {
+            id: id.to_string(),
+            args,
+        }
     }
 }
 
 impl Obj {
     pub fn new(id: &str) -> Self {
-        Self { id: id.to_string()}
+        Self { id: id.to_string() }
     }
 }
 
 impl Var {
     pub fn new(id: &str) -> Self {
-        Self { id: id.to_string()}
+        Self { id: id.to_string() }
     }
 }
 
 impl Fun {
     pub fn new(id: &str, args: Vec<Box<Term>>) -> Self {
-        Self { id: id.to_string(), args }
+        Self {
+            id: id.to_string(),
+            args,
+        }
+    }
+}
+
+impl Clause {
+    pub fn new(formulas: Vec<Formula>) -> Self {
+        Self {
+            id: CLAUSE_COUNTER.fetch_add(1, Ordering::SeqCst),
+            formulas,
+        }
+    }
+
+    pub fn get_id(&self) -> usize {
+        self.id
+    }
+
+    pub fn get_formulas(&self) -> &Vec<Formula> {
+        &self.formulas
     }
 }
 
@@ -110,13 +142,13 @@ impl Display for Term {
 impl Display for Obj {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.id)
-    }   
+    }
 }
 
 impl Display for Var {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.id)
-    }   
+    }
 }
 
 impl Display for Fun {
