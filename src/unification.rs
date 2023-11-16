@@ -1,7 +1,4 @@
-use crate::{
-    lang::{Formula, Fun, Obj, Pred, Term, Var},
-    Fun, Obj, Pred, Var,
-};
+use crate::lang::{Formula, Fun, Pred, Term, Var};
 use std::collections::HashMap;
 
 type Unifier = HashMap<Var, Term>;
@@ -27,7 +24,14 @@ pub fn most_general_unifier(formulas: Vec<&Formula>) -> Option<Unifier> {
     let unified_pred = predicates.get(0).unwrap();
     let mut unifiable = true;
     for predicate in &predicates[1..] {
-        unifiable = unify_2_predicates(substitute_pred(unified_pred, &unifier), substitute_pred(predicate, &unifier), &mut unifier);
+        unifiable = unify_2_predicates(
+            substitute_pred(unified_pred, &unifier),
+            substitute_pred(predicate, &unifier),
+            &mut unifier,
+        );
+        if !unifiable {
+            return None;
+        }
     }
 
     // Line up the ith_arguments of all predicates and put them in the same list
@@ -50,17 +54,69 @@ pub fn most_general_unifier(formulas: Vec<&Formula>) -> Option<Unifier> {
     //     }
     // }
 
+    println!("Unifiable? {}", unifiable);
+
     // unifier.insert(Var::new("x"), Obj!("a"));
     // unifier.insert(Var::new("y"), Fun!("f", [Var!("a")]));
-    if unifiable {
-        return Some(unifier);
-    } else {
-        return None;
-    }
+    return Some(unifier);
 }
 
-fn unify_2_predicates(pred1: Pred, pred2: Pred, mut unifier: &Unifier) -> bool {
-    todo!()
+fn unify_2_predicates(pred1: Pred, pred2: Pred, unifier: &mut Unifier) -> bool {
+    let unifiable = true;
+
+    let mut pairs_to_unify = vec![];
+
+    let able_to_lineup = line_up_terms(pred1.get_args(), pred2.get_args(), &mut pairs_to_unify);
+
+    for (t1, t2) in pairs_to_unify {
+        println!("Pair: {}, {}", t1, t2);
+    }
+    println!("------");
+
+    if !able_to_lineup {
+        return false;
+    }
+
+    return unifiable;
+}
+
+fn line_up_terms(
+    args1: &Vec<Term>,
+    args2: &Vec<Term>,
+    pairs_to_unify: &mut Vec<(Term, Term)>,
+) -> bool {
+    assert!(
+        args1.len() == args2.len(),
+        "The formula is not in the right form. Check the arity of your symbols"
+    );
+    let mut able_to_lineup = true;
+    for (arg1, arg2) in args1.iter().zip(args2.iter()) {
+        match (arg1, arg2) {
+            (Term::Obj(o1), Term::Obj(o2)) => {
+                if o1 != o2 {
+                    return false; // 2 different objects can never be unified
+                }
+            }
+            (Term::Var(_), _) | (_, Term::Var(_)) => {
+                if arg1 != arg2 {
+                    // no need to unify identical terms
+                    pairs_to_unify.push((arg1.clone(), arg2.clone()));
+                }
+            }
+            (Term::Obj(_), Term::Fun(_)) | (Term::Fun(_), Term::Obj(_)) => return false,
+            (Term::Fun(f1), Term::Fun(f2)) => {
+                if f1.get_id() != f2.get_id() {
+                    return false; // 2 different functions can never be unified
+                } else {
+                    able_to_lineup = line_up_terms(f1.get_args(), f2.get_args(), pairs_to_unify);
+                    if !able_to_lineup {
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+    return able_to_lineup;
 }
 
 pub fn substitute(formula: &Formula, unifier: &Unifier) -> Formula {
@@ -121,17 +177,17 @@ fn substitute_term(term: &Term, unifier: &Unifier) -> Term {
     }
 }
 
-fn is_ground_term(term: &Term) -> bool {
-    match term {
-        Term::Obj(_) => true,
-        Term::Var(_) => false,
-        Term::Fun(f) => f
-            .get_args()
-            .iter()
-            .map(|arg| is_ground_term(arg))
-            .all(|x| x),
-    }
-}
+// fn is_ground_term(term: &Term) -> bool {
+//     match term {
+//         Term::Obj(_) => true,
+//         Term::Var(_) => false,
+//         Term::Fun(f) => f
+//             .get_args()
+//             .iter()
+//             .map(|arg| is_ground_term(arg))
+//             .all(|x| x),
+//     }
+// }
 
 fn have_same_signature(predicates: &Vec<&Pred>) -> bool {
     predicates
