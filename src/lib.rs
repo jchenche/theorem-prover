@@ -14,11 +14,11 @@ fn and_to_or(formula: Formula) -> Formula {
         Formula::False => Formula::False,
         Formula::And(l, r) => Formula::Or(Box::new(and_to_or(*l)), Box::new(and_to_or(*r))),
         Formula::Or(l, r) => Formula::Or(Box::new(and_to_or(*l)), Box::new(and_to_or(*r))),
-        Formula::Neg(l) => Formula::Neg(Box::new(and_to_or(*l))),
+        Formula::Neg(f) => Formula::Neg(Box::new(and_to_or(*f))),
         Formula::Imply(l, r) => Formula::Imply(Box::new(and_to_or(*l)), Box::new(and_to_or(*r))),
         Formula::Iff(l, r) => Formula::Iff(Box::new(and_to_or(*l)), Box::new(and_to_or(*r))),
-        Formula::Forall(v, l) => Formula::Forall(v, Box::new(and_to_or(*l))),
-        Formula::Exists(v, l) => Formula::Exists(v, Box::new(and_to_or(*l))),
+        Formula::Forall(v, f) => Formula::Forall(v, Box::new(and_to_or(*f))),
+        Formula::Exists(v, f) => Formula::Exists(v, Box::new(and_to_or(*f))),
     }
 }
 

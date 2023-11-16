@@ -59,6 +59,14 @@ impl Pred {
             args,
         }
     }
+
+    pub fn get_id(&self) -> &String {
+        &self.id
+    }
+
+    pub fn get_args(&self) -> &Vec<Box<Term>> {
+        &self.args
+    }
 }
 
 impl Obj {
@@ -79,6 +87,14 @@ impl Fun {
             id: id.to_string(),
             args,
         }
+    }
+
+    pub fn get_id(&self) -> &String {
+        &self.id
+    }
+
+    pub fn get_args(&self) -> &Vec<Box<Term>> {
+        &self.args
     }
 }
 
