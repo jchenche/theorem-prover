@@ -19,7 +19,7 @@ pub fn most_general_unifier(formulas: Vec<&Formula>) -> Option<Unifier> {
     // let arity = predicates.get(0).unwrap().get_args().len();
     // let processed = vec![false; arity];
     // let mut nth_args = vec![vec![]; arity];
-    let mut unifier = HashMap::new();
+    let mut unifier: Unifier = HashMap::new();
 
     let unified_pred = predicates.get(0).unwrap();
     let mut unifiable = true;
@@ -68,13 +68,24 @@ fn unify_2_predicates(pred1: Pred, pred2: Pred, unifier: &mut Unifier) -> bool {
 
     let able_to_lineup = line_up_terms(pred1.get_args(), pred2.get_args(), &mut pairs_to_unify);
 
-    for (t1, t2) in pairs_to_unify {
+    for (t1, t2) in &pairs_to_unify {
         println!("Pair: {}, {}", t1, t2);
     }
     println!("------");
 
     if !able_to_lineup {
         return false;
+    }
+
+    let i = 0;
+    while i < pairs_to_unify.len() {
+        match pairs_to_unify.get(i).unwrap() {
+            (Term::Var(v), t) | (t, Term::Var(v)) => {
+                // unifier.insert(v.clone(), t.clone());
+                // unifier.iter_mut().map(|(_k, v)| *v = substitute_term(v, unifier));
+            }
+            _ => unreachable!("Only attempt to unify variables to terms"),
+        }
     }
 
     return unifiable;
@@ -94,12 +105,15 @@ fn line_up_terms(
         match (arg1, arg2) {
             (Term::Obj(o1), Term::Obj(o2)) => {
                 if o1 != o2 {
-                    return false; // 2 different objects can never be unified
+                    return false; // 2 different objects can't be unified
                 }
             }
-            (Term::Var(_), _) | (_, Term::Var(_)) => {
+            (Term::Var(v), t) | (t, Term::Var(v)) => {
+                // no need to unify identical terms
                 if arg1 != arg2 {
-                    // no need to unify identical terms
+                    if term_contains_var(t, v) {
+                        return false; // v and t can't be unified if t contains v (t != v at this line)
+                    }
                     pairs_to_unify.push((arg1.clone(), arg2.clone()));
                 }
             }
@@ -177,17 +191,17 @@ fn substitute_term(term: &Term, unifier: &Unifier) -> Term {
     }
 }
 
-// fn is_ground_term(term: &Term) -> bool {
-//     match term {
-//         Term::Obj(_) => true,
-//         Term::Var(_) => false,
-//         Term::Fun(f) => f
-//             .get_args()
-//             .iter()
-//             .map(|arg| is_ground_term(arg))
-//             .all(|x| x),
-//     }
-// }
+fn term_contains_var(term: &Term, var: &Var) -> bool {
+    match term {
+        Term::Obj(_) => false,
+        Term::Var(v) => v == var,
+        Term::Fun(f) => f
+            .get_args()
+            .iter()
+            .map(|arg| term_contains_var(arg, var))
+            .any(|x| x),
+    }
+}
 
 fn have_same_signature(predicates: &Vec<&Pred>) -> bool {
     predicates
