@@ -3,7 +3,7 @@ use std::{
     sync::atomic::{AtomicUsize, Ordering},
 };
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Formula {
     Pred(Pred),
     True,
@@ -17,20 +17,20 @@ pub enum Formula {
     Exists(Var, Box<Formula>),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Pred {
     id: String,
     args: Box<Vec<Term>>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Term {
     Obj(Obj),
     Var(Var),
     Fun(Fun),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Obj {
     id: String,
 }
@@ -40,7 +40,7 @@ pub struct Var {
     id: String,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Fun {
     id: String,
     args: Box<Vec<Term>>,

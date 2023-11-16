@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::{
     lang::{Clause, Formula},
     unification::{most_general_unifier, substitute},
@@ -51,22 +53,23 @@ fn resolve_clauses(clause1: &Clause, clause2: &Clause) -> Vec<Clause> {
 
             // unify 2 formulas if possible and then use mgu to obtain a new clause
             if let Some(unifier) = most_general_unifier(vec![formula1, formula2]) {
-                let mut new_formulas = Vec::new();
+                // use HashSet to remove duplicate formulas
+                let mut new_formulas = HashSet::new();
 
                 // use mgu for substitution to obtain new formulas
                 for formula in clause1.get_formulas() {
                     if formula != formula1 {
-                        new_formulas.push(substitute(formula, &unifier));
+                        new_formulas.insert(substitute(formula, &unifier));
                     }
                 }
                 for formula in clause2.get_formulas() {
                     if formula != formula2 {
-                        new_formulas.push(substitute(formula, &unifier));
+                        new_formulas.insert(substitute(formula, &unifier));
                     }
                 }
 
                 // create a new clause from the substituted formulas
-                new_clauses.push(Clause::new(new_formulas));
+                new_clauses.push(Clause::new(new_formulas.into_iter().collect()));
             }
         }
     }
