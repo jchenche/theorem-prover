@@ -77,7 +77,7 @@ fn unify_2_predicates(pred1: Pred, pred2: Pred, unifier: &mut Unifier) -> bool {
         return false;
     }
 
-    let i = 0;
+    let mut i = 0;
     while i < pairs_to_unify.len() {
         match pairs_to_unify.get(i).unwrap() {
             (Term::Var(v), t) | (t, Term::Var(v)) => {
@@ -86,6 +86,7 @@ fn unify_2_predicates(pred1: Pred, pred2: Pred, unifier: &mut Unifier) -> bool {
             }
             _ => unreachable!("Only attempt to unify variables to terms"),
         }
+        i += 1;
     }
 
     return unifiable;
