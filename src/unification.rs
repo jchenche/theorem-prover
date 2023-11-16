@@ -39,9 +39,7 @@ pub fn most_general_unifier(formulas: Vec<&Formula>) -> Option<Unifier> {
 
     for ith_args in nth_args {
         for term in ith_args {
-            if is_ground_term(term) {
-
-            }
+            if is_ground_term(term) {}
         }
     }
 
