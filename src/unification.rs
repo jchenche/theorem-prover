@@ -21,11 +21,28 @@ pub fn most_general_unifier(formulas: Vec<&Formula>) -> Option<Unifier> {
 
     let arity = predicates.get(0).unwrap().get_args().len();
     let processed = vec![false; arity];
+    let mut nth_args = vec![vec![]; arity];
     let mut unifier = HashMap::new();
 
-    let mut nth_args: Vec<Vec<Term>> = vec![vec![]; arity];
     for predicate in predicates {
-        for (ith_position, term) in predicate.get_args().iter().enumerate() {}
+        for (ith, term) in predicate.get_args().iter().enumerate() {
+            nth_args[ith].push(term);
+        }
+    }
+
+    for ith_args in &nth_args {
+        for term in ith_args {
+            print!("{}, ", term);
+        }
+        println!();
+    }
+
+    for ith_args in nth_args {
+        for term in ith_args {
+            if is_ground_term(term) {
+
+            }
+        }
     }
 
     // unifier.insert(Var::new("x"), Obj!("a"));
