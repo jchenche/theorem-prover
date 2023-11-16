@@ -19,47 +19,53 @@ pub fn most_general_unifier(formulas: Vec<&Formula>) -> Option<Unifier> {
         return None;
     }
 
-    let arity = predicates.get(0).unwrap().get_args().len();
-    let processed = vec![false; arity];
-    let mut nth_args = vec![vec![]; arity];
+    // let arity = predicates.get(0).unwrap().get_args().len();
+    // let processed = vec![false; arity];
+    // let mut nth_args = vec![vec![]; arity];
     let mut unifier = HashMap::new();
 
+    let unified_pred = predicates.get(0).unwrap();
+    let mut unifiable = true;
+    for predicate in &predicates[1..] {
+        unifiable = unify_2_predicates(substitute_pred(unified_pred, &unifier), substitute_pred(predicate, &unifier), &mut unifier);
+    }
+
     // Line up the ith_arguments of all predicates and put them in the same list
-    for predicate in predicates {
-        for (ith, term) in predicate.get_args().iter().enumerate() {
-            nth_args[ith].push(term);
-        }
-    }
+    // for predicate in predicates {
+    //     for (ith, term) in predicate.get_args().iter().enumerate() {
+    //         nth_args[ith].push(term);
+    //     }
+    // }
 
-    for ith_args in &nth_args {
-        for term in ith_args {
-            print!("{}, ", term);
-        }
-        println!();
-    }
+    // for ith_args in &nth_args {
+    //     for term in ith_args {
+    //         print!("{}, ", term);
+    //     }
+    //     println!();
+    // }
 
-    for ith_args in nth_args {
-        for term in ith_args {
-            if is_ground_term(term) {}
-        }
-    }
+    // for ith_args in nth_args {
+    //     for term in ith_args {
+    //         if is_ground_term(term) {}
+    //     }
+    // }
 
     // unifier.insert(Var::new("x"), Obj!("a"));
     // unifier.insert(Var::new("y"), Fun!("f", [Var!("a")]));
-    return Some(unifier);
+    if unifiable {
+        return Some(unifier);
+    } else {
+        return None;
+    }
+}
+
+fn unify_2_predicates(pred1: Pred, pred2: Pred, mut unifier: &Unifier) -> bool {
+    todo!()
 }
 
 pub fn substitute(formula: &Formula, unifier: &Unifier) -> Formula {
     match formula {
-        Formula::Pred(pred) => Formula::Pred(Pred::new(
-            pred.get_id(),
-            Box::new(
-                pred.get_args()
-                    .iter()
-                    .map(|arg| substitute_term(arg, unifier))
-                    .collect(),
-            ),
-        )),
+        Formula::Pred(pred) => Formula::Pred(substitute_pred(pred, unifier)),
         Formula::True => Formula::True,
         Formula::False => Formula::False,
         Formula::And(l, r) => Formula::And(
@@ -84,23 +90,16 @@ pub fn substitute(formula: &Formula, unifier: &Unifier) -> Formula {
     }
 }
 
-fn is_ground_term(term: &Term) -> bool {
-    match term {
-        Term::Obj(_) => true,
-        Term::Var(_) => false,
-        Term::Fun(f) => f
-            .get_args()
-            .iter()
-            .map(|arg| is_ground_term(arg))
-            .all(|x| x),
-    }
-}
-
-fn have_same_signature(predicates: &Vec<&Pred>) -> bool {
-    predicates
-        .iter()
-        .zip(predicates.iter().skip(1))
-        .all(|(p1, p2)| p1.get_id() == p2.get_id() && p1.get_args().len() == p2.get_args().len())
+fn substitute_pred(pred: &Pred, unifier: &Unifier) -> Pred {
+    Pred::new(
+        pred.get_id(),
+        Box::new(
+            pred.get_args()
+                .iter()
+                .map(|arg| substitute_term(arg, unifier))
+                .collect(),
+        ),
+    )
 }
 
 fn substitute_term(term: &Term, unifier: &Unifier) -> Term {
@@ -120,6 +119,25 @@ fn substitute_term(term: &Term, unifier: &Unifier) -> Term {
             ),
         )),
     }
+}
+
+fn is_ground_term(term: &Term) -> bool {
+    match term {
+        Term::Obj(_) => true,
+        Term::Var(_) => false,
+        Term::Fun(f) => f
+            .get_args()
+            .iter()
+            .map(|arg| is_ground_term(arg))
+            .all(|x| x),
+    }
+}
+
+fn have_same_signature(predicates: &Vec<&Pred>) -> bool {
+    predicates
+        .iter()
+        .zip(predicates.iter().skip(1))
+        .all(|(p1, p2)| p1.get_id() == p2.get_id() && p1.get_args().len() == p2.get_args().len())
 }
 
 #[cfg(test)]
