@@ -7,12 +7,31 @@ use std::collections::HashMap;
 type Unifier = HashMap<Var, Term>;
 
 pub fn most_general_unifier(formulas: Vec<&Formula>) -> Option<Unifier> {
+    let mut predicates = vec![];
+    for formula in formulas {
+        match formula {
+            Formula::Pred(pred) => predicates.push(pred),
+            _ => return None // Only consider predicates
+        }
+    }
+
+    if predicates.len() < 2 || !have_same_signature(&predicates) {
+        return None
+    }
+
+    let arity = predicates.get(0).unwrap().get_args().len();
+    let processed = vec![false; arity];
     let mut unifier = HashMap::new();
 
-    let processed = vec![false; formulas.len()];
-    unifier.insert(Var::new("x"), Obj!("a"));
-    unifier.insert(Var::new("y"), Fun!("f", [Var!("a")]));
-
+    let mut nth_args: Vec<Vec<Term>> = vec![vec![]; arity];
+    for predicate in predicates {
+        for (ith_position, term) in predicate.get_args().iter().enumerate() {
+            
+        }
+    }
+    
+    // unifier.insert(Var::new("x"), Obj!("a"));
+    // unifier.insert(Var::new("y"), Fun!("f", [Var!("a")]));
     return Some(unifier);
 }
 
@@ -47,6 +66,35 @@ pub fn substitute(formula: &Formula, unifier: &Unifier) -> Formula {
         Formula::Forall(v, f) => Formula::Forall(v.clone(), Box::new(substitute(f, unifier))),
         Formula::Exists(v, f) => Formula::Exists(v.clone(), Box::new(substitute(f, unifier))),
     }
+}
+
+fn is_ground_term(term: &Term) -> bool {
+    match term {
+        Term::Obj(_) => true,
+        Term::Var(_) => false,
+        Term::Fun(f) => f.get_args().iter().map(|arg| is_ground_term(arg)).all(|x| x)
+    }
+}
+
+fn have_same_signature(predicates: &Vec<&Pred>) -> bool {
+    // Imperative version
+    // if predicates.len() == 0 {
+    //     return true;
+    // }
+
+    // let pred_name = predicates.get(0).unwrap().get_id();
+    // let pred_arity = predicates.get(0).unwrap().get_args().len();
+    // for predicate in predicates {
+    //     if predicate.get_id() != pred_name || predicate.get_args().len() != pred_arity {
+    //         return false
+    //     }
+    // }
+
+    // return true;
+
+    predicates.iter().zip(predicates.iter().skip(1)).all(|(p1, p2)| {
+        p1.get_id() == p2.get_id() && p1.get_args().len() == p2.get_args().len()
+    })
 }
 
 fn substitute_term(term: &Term, unifier: &Unifier) -> Term {
