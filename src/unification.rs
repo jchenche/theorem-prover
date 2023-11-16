@@ -24,6 +24,7 @@ pub fn most_general_unifier(formulas: Vec<&Formula>) -> Option<Unifier> {
     let mut nth_args = vec![vec![]; arity];
     let mut unifier = HashMap::new();
 
+    // Line up the ith_arguments of all predicates and put them in the same list
     for predicate in predicates {
         for (ith, term) in predicate.get_args().iter().enumerate() {
             nth_args[ith].push(term);
@@ -96,21 +97,6 @@ fn is_ground_term(term: &Term) -> bool {
 }
 
 fn have_same_signature(predicates: &Vec<&Pred>) -> bool {
-    // Imperative version
-    // if predicates.len() == 0 {
-    //     return true;
-    // }
-
-    // let pred_name = predicates.get(0).unwrap().get_id();
-    // let pred_arity = predicates.get(0).unwrap().get_args().len();
-    // for predicate in predicates {
-    //     if predicate.get_id() != pred_name || predicate.get_args().len() != pred_arity {
-    //         return false
-    //     }
-    // }
-
-    // return true;
-
     predicates
         .iter()
         .zip(predicates.iter().skip(1))
@@ -146,11 +132,68 @@ mod tests {
 
     #[test]
     fn test_most_general_unifier_1() {
-        let p_a_y = Pred!("p", [Obj!("a"), Var!("y")]); // p(a, y)
-        let p_x_fx = Pred!("p", [Obj!("x"), Fun!("f", [Var!("x")])]); // p(x, f(x))
-        let unifier = most_general_unifier(vec![&p_a_y, &p_x_fx]).unwrap(); // should return [x ↦ a, y ↦ f(a)]
-        assert_eq!(unifier.get(&Var::new("x")), Some(&Obj!("a")));
-        assert_eq!(unifier.get(&Var::new("y")), Some(&Fun!("f", [Var!("a")])));
+        let p1 = Pred!("p", [Obj!("a"), Var!("y")]); // p(a, y)
+        let p2 = Pred!("p", [Var!("x"), Fun!("f", [Var!("x")])]); // p(x, f(x))
+        let unifier = most_general_unifier(vec![&p1, &p2]).unwrap();
+        assert_eq!(
+            unifier,
+            HashMap::from([
+                (Var::new("x"), Obj!("a")),
+                (Var::new("y"), Fun!("f", [Var!("a")])),
+            ])
+        ); // [x ↦ a, y ↦ f(a)]
+    }
+
+    #[test]
+    fn test_most_general_unifier_2() {
+        let p1 = Pred!(
+            "p",
+            [Var!("x"), Fun!("f", [Var!("x"), Fun!("g", [Var!("z")])])]
+        ); // p(x, f(x, g(z)))
+        let p2 = Pred!(
+            "p",
+            [
+                Fun!("h", [Obj!("a")]),
+                Fun!("f", [Var!("z"), Fun!("g", [Var!("y")])])
+            ]
+        ); // p(h(a), f(z, g(y)))
+        let p3 = Pred!(
+            "p",
+            [
+                Fun!("h", [Var!("w")]),
+                Fun!("f", [Var!("z"), Fun!("g", [Var!("v")])])
+            ]
+        ); // p(h(w), f(z, g(v)))
+        let unifier = most_general_unifier(vec![&p1, &p2, &p3]).unwrap();
+        assert_eq!(
+            unifier,
+            HashMap::from([
+                (Var::new("x"), Fun!("h", [Obj!("a")])),
+                (Var::new("y"), Fun!("h", [Obj!("a")])),
+                (Var::new("z"), Fun!("h", [Obj!("a")])),
+                (Var::new("v"), Fun!("h", [Obj!("a")])),
+                (Var::new("w"), Obj!("a")),
+            ])
+        ); // [x ↦ h(a), y ↦ h(a), z ↦ h(a), v ↦ h(a), w ↦ a]
+    }
+
+    #[test]
+    fn test_most_general_unifier_3() {
+        let p1 = Pred!("p", [Var!("x"), Obj!("a")]);
+        let p2 = Pred!("p", [Var!("y"), Obj!("a")]);
+        let p3 = Pred!("p", [Var!("z"), Obj!("a")]);
+        let p4 = Pred!("p", [Fun!("f", [Var!("w")]), Obj!("a")]);
+        let p5 = Pred!("p", [Fun!("f", [Obj!("a")]), Obj!("a")]);
+        let unifier = most_general_unifier(vec![&p1, &p2, &p3, &p4, &p5]).unwrap();
+        assert_eq!(
+            unifier,
+            HashMap::from([
+                (Var::new("x"), Fun!("f", [Obj!("a")])),
+                (Var::new("y"), Fun!("f", [Obj!("a")])),
+                (Var::new("z"), Fun!("f", [Obj!("a")])),
+                (Var::new("w"), Obj!("a")),
+            ])
+        ); // [x ↦ f(a), y ↦ f(a), z ↦ f(a), w ↦ a]
     }
 
     #[test]
