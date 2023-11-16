@@ -20,7 +20,7 @@ pub enum Formula {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Pred {
     id: String,
-    args: Vec<Box<Term>>,
+    args: Box<Vec<Term>>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -43,7 +43,7 @@ pub struct Var {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Fun {
     id: String,
-    args: Vec<Box<Term>>,
+    args: Box<Vec<Term>>,
 }
 
 static CLAUSE_COUNTER: AtomicUsize = AtomicUsize::new(0);
@@ -53,7 +53,7 @@ pub struct Clause {
 }
 
 impl Pred {
-    pub fn new(id: &str, args: Vec<Box<Term>>) -> Self {
+    pub fn new(id: &str, args: Box<Vec<Term>>) -> Self {
         Self {
             id: id.to_string(),
             args,
@@ -64,7 +64,7 @@ impl Pred {
         &self.id
     }
 
-    pub fn get_args(&self) -> &Vec<Box<Term>> {
+    pub fn get_args(&self) -> &Box<Vec<Term>> {
         &self.args
     }
 }
@@ -82,7 +82,7 @@ impl Var {
 }
 
 impl Fun {
-    pub fn new(id: &str, args: Vec<Box<Term>>) -> Self {
+    pub fn new(id: &str, args: Box<Vec<Term>>) -> Self {
         Self {
             id: id.to_string(),
             args,
@@ -93,7 +93,7 @@ impl Fun {
         &self.id
     }
 
-    pub fn get_args(&self) -> &Vec<Box<Term>> {
+    pub fn get_args(&self) -> &Box<Vec<Term>> {
         &self.args
     }
 }
@@ -232,7 +232,7 @@ macro_rules! Exists {
 #[macro_export]
 macro_rules! Pred {
     ($id:expr, [$($arg:expr),*]) => {
-        Formula::Pred(Pred::new($id, vec![$(Box::new($arg)),*]))
+        Formula::Pred(Pred::new($id, Box::new(vec![$($arg),*])))
     };
 }
 
@@ -253,6 +253,6 @@ macro_rules! Var {
 #[macro_export]
 macro_rules! Fun {
     ($id:expr, [$($arg:expr),*]) => {
-        Term::Fun(Fun::new($id, vec![$(Box::new($arg)),*]))
+        Term::Fun(Fun::new($id, Box::new(vec![$($arg),*])))
     };
 }
