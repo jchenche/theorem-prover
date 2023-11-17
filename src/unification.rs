@@ -95,7 +95,7 @@ fn line_up_terms(
             (Term::Obj(_), Term::Fun(_)) | (Term::Fun(_), Term::Obj(_)) => return false,
             (Term::Fun(f1), Term::Fun(f2)) => {
                 if f1.get_id() != f2.get_id() {
-                    return false; // 2 different functions can never be unified
+                    return false; // 2 different functions can't be unified
                 } else {
                     if !line_up_terms(f1.get_args(), f2.get_args(), pairs_to_unify) {
                         return false;
@@ -169,11 +169,7 @@ fn term_contains_var(term: &Term, var: &Var) -> bool {
     match term {
         Term::Obj(_) => false,
         Term::Var(v) => v == var,
-        Term::Fun(f) => f
-            .get_args()
-            .iter()
-            .map(|arg| term_contains_var(arg, var))
-            .any(|x| x),
+        Term::Fun(f) => f.get_args().iter().any(|arg| term_contains_var(arg, var)),
     }
 }
 
