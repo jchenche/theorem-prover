@@ -125,7 +125,7 @@ pub fn substitute(formula: &Formula, unifier: &Unifier) -> Formula {
             Box::new(substitute(l, unifier)),
             Box::new(substitute(r, unifier)),
         ),
-        Formula::Iff(l, r) => Formula::And(
+        Formula::Iff(l, r) => Formula::Iff(
             Box::new(substitute(l, unifier)),
             Box::new(substitute(r, unifier)),
         ),
