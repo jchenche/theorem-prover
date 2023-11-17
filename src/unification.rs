@@ -8,7 +8,9 @@ pub fn most_general_unifier(formulas: Vec<&Formula>) -> Option<Unifier> {
     for formula in formulas {
         match formula {
             Formula::Pred(pred) => predicates.push(pred),
-            _ => return None, // Only consider predicates
+            _ => unreachable!(
+                "Internal State Error: it should only unify atomic formulas (aka predicates)!"
+            ),
         }
     }
 
@@ -17,16 +19,14 @@ pub fn most_general_unifier(formulas: Vec<&Formula>) -> Option<Unifier> {
     }
 
     let mut unifier: Unifier = HashMap::new();
-    let mut unifiable = true;
     let unified_pred = predicates.get(0).unwrap();
 
-    for predicate in &predicates[1..] {
-        unifiable = predicates_unification(
+    for predicate in &predicates {
+        if !(unify_predicates(
             substitute_pred(unified_pred, &unifier),
             substitute_pred(predicate, &unifier),
             &mut unifier,
-        );
-        if !unifiable {
+        )) {
             return None;
         }
     }
@@ -34,12 +34,9 @@ pub fn most_general_unifier(formulas: Vec<&Formula>) -> Option<Unifier> {
     return Some(unifier);
 }
 
-fn predicates_unification(pred1: Pred, pred2: Pred, unifier: &mut Unifier) -> bool {
-    let unifiable = true;
+fn unify_predicates(pred1: Pred, pred2: Pred, unifier: &mut Unifier) -> bool {
     let mut pairs_to_unify = vec![];
-
-    let able_to_lineup = line_up_terms(pred1.get_args(), pred2.get_args(), &mut pairs_to_unify);
-    if !able_to_lineup {
+    if !line_up_terms(pred1.get_args(), pred2.get_args(), &mut pairs_to_unify) {
         return false;
     }
 
@@ -60,12 +57,14 @@ fn predicates_unification(pred1: Pred, pred2: Pred, unifier: &mut Unifier) -> bo
 
                 unifier.extend(new_unifier);
             }
-            _ => unreachable!("Only attempt to unify variables to terms"),
+            _ => unreachable!(
+                "Internal State Error: it should only attempt to unify variables to terms!"
+            ),
         }
         i += 1;
     }
 
-    return unifiable;
+    return true;
 }
 
 fn line_up_terms(
@@ -77,7 +76,6 @@ fn line_up_terms(
         args1.len() == args2.len(),
         "The formula is not in the right form. Check the arity of your symbols"
     );
-    let mut able_to_lineup = true;
     for (arg1, arg2) in args1.iter().zip(args2.iter()) {
         match (arg1, arg2) {
             (Term::Obj(o1), Term::Obj(o2)) => {
@@ -99,15 +97,14 @@ fn line_up_terms(
                 if f1.get_id() != f2.get_id() {
                     return false; // 2 different functions can never be unified
                 } else {
-                    able_to_lineup = line_up_terms(f1.get_args(), f2.get_args(), pairs_to_unify);
-                    if !able_to_lineup {
+                    if !line_up_terms(f1.get_args(), f2.get_args(), pairs_to_unify) {
                         return false;
                     }
                 }
             }
         }
     }
-    return able_to_lineup;
+    return true;
 }
 
 pub fn substitute(formula: &Formula, unifier: &Unifier) -> Formula {
