@@ -137,12 +137,12 @@ fn to_string(clauses: &Vec<Clause>) -> String {
 mod tests {
     use super::*;
     use crate::{
-        lang::{Obj, Pred, Term, Var},
-        Neg, Obj, Pred, Var,
+        lang::{Fun, Obj, Pred, Term, Var},
+        Fun, Neg, Obj, Pred, Var,
     };
 
     #[test]
-    fn test_one_and_only_one_negated() {
+    fn test_unbox_one_and_only_one_negation() {
         let p1 = Pred!("p", [Obj!("a"), Var!("y")]); // p(a, y)
         let p2 = Neg!(Pred!("p", [Obj!("x"), Var!("y")])); // ~p(x, y)
 
@@ -197,7 +197,21 @@ mod tests {
     }
 
     #[test]
-    fn test_basic_resolve() {
+    fn test_basic_resolve_1() {
+        let p1 = Pred!("happy", [Var!("x")]); // happy(x)
+        let p2 = Pred!("sad", [Var!("x")]); // sad(x)
+        let p3 = Neg!(Pred!("sad", [Var!("y")])); // ~sad(y)
+        let p4 = Neg!(Pred!("happy", [Fun!("mother", [Obj!("Joe")])])); // ~happy(mother(Joe))
+
+        let c1 = Clause::new(vec![p1, p2]); // C1: {happy(x), sad(x)}
+        let c2 = Clause::new(vec![p3]); // C2: {~sad(y)}
+        let c3 = Clause::new(vec![p4]); // C3: {~happy(mother(Joe))}
+
+        assert!(!resolve(vec![c1, c2, c3]));
+    }
+
+    #[test]
+    fn test_basic_resolve_2() {
         let p1 = Pred!("p", [Var!("x")]); // p(x)
         let p2 = Pred!("p", [Var!("y")]); // p(y)
         let p3 = Neg!(Pred!("p", [Obj!("a")])); // ~p(a)
@@ -207,5 +221,22 @@ mod tests {
         let c2 = Clause::new(vec![p3, p4]); // C2: {~p(a), ~p(b)}
 
         assert!(!resolve(vec![c1, c2]));
+    }
+
+    #[test]
+    fn test_basic_resolve_3() {
+        let p1 = Neg!(Pred!("p", [Var!("z"), Obj!("a")])); // ~p(z, a)
+        let p2 = Neg!(Pred!("p", [Var!("z"), Var!("x")])); // ~p(z, x)
+        let p3 = Neg!(Pred!("p", [Var!("x"), Var!("z")])); // ~p(x, z)
+        let p4 = Pred!("p", [Var!("y"), Obj!("a")]); // p(y, a)
+        let p5 = Pred!("p", [Var!("y"), Fun!("f", [Var!("y")])]); // p(y, f(y))
+        let p6 = Pred!("p", [Var!("w"), Obj!("a")]); // p(w, a)
+        let p7 = Pred!("p", [Fun!("f", [Var!("w")]), Var!("w")]); // p(f(w), w)
+
+        let c1 = Clause::new(vec![p1, p2, p3]); // C1: {~p(z, a), ~p(z, x), ~p(x, z)}
+        let c2 = Clause::new(vec![p4, p5]); // C2: {p(y, a), p(y, f(y))}
+        let c3 = Clause::new(vec![p6, p7]); // C3: {p(y, a), p(f(w), w)}
+
+        assert!(!resolve(vec![c1, c2, c3]));
     }
 }
