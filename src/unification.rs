@@ -8,9 +8,7 @@ pub fn most_general_unifier(formulas: Vec<&Formula>) -> Option<Unifier> {
     for formula in formulas {
         match formula {
             Formula::Pred(pred) => predicates.push(pred),
-            _ => unreachable!(
-                "Internal State Error: it should only unify atomic formulas (aka predicates)!"
-            ),
+            _ => unreachable!("It should only unify atomic formulas (aka predicates)!"),
         }
     }
 
@@ -57,9 +55,13 @@ fn unify_predicates(pred1: Pred, pred2: Pred, unifier: &mut Unifier) -> bool {
 
                 unifier.extend(new_unifier);
             }
-            _ => unreachable!(
-                "Internal State Error: it should only attempt to unify variables to terms!"
-            ),
+            (t1, t2) => {
+                let mut new_pairs_to_unify = vec![];
+                if !term_matching(t1, t2, &mut new_pairs_to_unify) {
+                    return false;
+                }
+                pairs_to_unify.extend(new_pairs_to_unify);
+            }
         }
         i += 1;
     }
@@ -77,29 +79,36 @@ fn line_up_terms(
         "The formula is not in the right form. Check the arity of your symbols"
     );
     for (arg1, arg2) in args1.iter().zip(args2.iter()) {
-        match (arg1, arg2) {
-            (Term::Obj(o1), Term::Obj(o2)) => {
-                if o1 != o2 {
-                    return false; // 2 different objects can't be unified
-                }
+        if !term_matching(arg1, arg2, pairs_to_unify) {
+            return false;
+        }
+    }
+    return true;
+}
+
+fn term_matching(arg1: &Term, arg2: &Term, pairs_to_unify: &mut Vec<(Term, Term)>) -> bool {
+    match (arg1, arg2) {
+        (Term::Obj(o1), Term::Obj(o2)) => {
+            if o1 != o2 {
+                return false; // 2 different objects can't be unified
             }
-            (Term::Var(v), t) | (t, Term::Var(v)) => {
-                // no need to unify identical terms
-                if arg1 != arg2 {
-                    if term_contains_var(t, v) {
-                        return false; // v and t can't be unified if t contains v (t != v at this line)
-                    }
-                    pairs_to_unify.push((arg1.clone(), arg2.clone()));
+        }
+        (Term::Var(v), t) | (t, Term::Var(v)) => {
+            // no need to unify identical terms
+            if arg1 != arg2 {
+                if term_contains_var(t, v) {
+                    return false; // v and t can't be unified if t contains v (t != v at this line)
                 }
+                pairs_to_unify.push((arg1.clone(), arg2.clone()));
             }
-            (Term::Obj(_), Term::Fun(_)) | (Term::Fun(_), Term::Obj(_)) => return false,
-            (Term::Fun(f1), Term::Fun(f2)) => {
-                if f1.get_id() != f2.get_id() {
-                    return false; // 2 different functions can't be unified
-                } else {
-                    if !line_up_terms(f1.get_args(), f2.get_args(), pairs_to_unify) {
-                        return false;
-                    }
+        }
+        (Term::Obj(_), Term::Fun(_)) | (Term::Fun(_), Term::Obj(_)) => return false,
+        (Term::Fun(f1), Term::Fun(f2)) => {
+            if f1.get_id() != f2.get_id() {
+                return false; // 2 different functions can't be unified
+            } else {
+                if !line_up_terms(f1.get_args(), f2.get_args(), pairs_to_unify) {
+                    return false;
                 }
             }
         }
@@ -189,7 +198,7 @@ mod tests {
     };
 
     #[test]
-    fn test_most_general_unifier_1() {
+    fn test_most_general_unifier_simple() {
         let p1 = Pred!("p", [Obj!("a"), Var!("y")]); // p(a, y)
         let p2 = Pred!("p", [Var!("x"), Fun!("f", [Var!("x")])]); // p(x, f(x))
         let unifier = most_general_unifier(vec![&p1, &p2]).unwrap();
@@ -203,7 +212,7 @@ mod tests {
     }
 
     #[test]
-    fn test_most_general_unifier_2() {
+    fn test_most_general_unifier_deep() {
         let p1 = Pred!(
             "p",
             [Var!("x"), Fun!("f", [Var!("x"), Fun!("g", [Var!("z")])])]
@@ -236,7 +245,7 @@ mod tests {
     }
 
     #[test]
-    fn test_most_general_unifier_3() {
+    fn test_most_general_unifier_many() {
         let p1 = Pred!("p", [Var!("x"), Obj!("a")]);
         let p2 = Pred!("p", [Var!("y"), Obj!("a")]);
         let p3 = Pred!("p", [Var!("z"), Obj!("a")]);
@@ -255,7 +264,29 @@ mod tests {
     }
 
     #[test]
-    fn test_substitute_1() {
+    fn test_most_general_unifier_two_vars() {
+        let p1 = Pred!("p", [Var!("x"), Var!("x")]); // p(x, x)
+        let p2 = Pred!("p", [Fun!("f", [Var!("y")]), Fun!("f", [Var!("z")])]); // p(f(y), f(z))
+        let unifier = most_general_unifier(vec![&p1, &p2]).unwrap();
+        assert_eq!(
+            unifier,
+            HashMap::from([
+                (Var::new("x"), Fun!("f", [Var!("z")])),
+                (Var::new("y"), Var!("z")),
+            ])
+        ); // [x ↦ f(z), y ↦ z]
+    }
+
+    #[test]
+    fn test_most_general_unifier_no_self_refer() {
+        let p1 = Pred!("p", [Var!("x"), Var!("x")]); // p(x, x)
+        let p2 = Pred!("p", [Fun!("f", [Var!("x")]), Var!("y")]); // p(f(x), y)
+        let unifier = most_general_unifier(vec![&p1, &p2]);
+        assert_eq!(unifier, None);
+    }
+
+    #[test]
+    fn test_substitute_deep() {
         let f = Pred!("r", [Fun!("g", [Var!("y")])]); // r(g(y))
         let unifier = HashMap::from([
             (Var::new("x"), Obj!("a")),
@@ -266,7 +297,7 @@ mod tests {
     }
 
     #[test]
-    fn test_substitute_2() {
+    fn test_substitute_many_args() {
         let f = Pred!("p", [Fun!("f", [Var!("y"), Fun!("g", [Var!("x")])])]); // p(f(y, g(x)))
         let unifier = HashMap::from([
             (Var::new("x"), Var!("z")),
