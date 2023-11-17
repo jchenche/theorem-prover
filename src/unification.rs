@@ -16,15 +16,12 @@ pub fn most_general_unifier(formulas: Vec<&Formula>) -> Option<Unifier> {
         return None;
     }
 
-    // let arity = predicates.get(0).unwrap().get_args().len();
-    // let processed = vec![false; arity];
-    // let mut nth_args = vec![vec![]; arity];
     let mut unifier: Unifier = HashMap::new();
-
-    let unified_pred = predicates.get(0).unwrap();
     let mut unifiable = true;
+    let unified_pred = predicates.get(0).unwrap();
+
     for predicate in &predicates[1..] {
-        unifiable = unify_2_predicates(
+        unifiable = predicates_unification(
             substitute_pred(unified_pred, &unifier),
             substitute_pred(predicate, &unifier),
             &mut unifier,
@@ -34,45 +31,14 @@ pub fn most_general_unifier(formulas: Vec<&Formula>) -> Option<Unifier> {
         }
     }
 
-    // Line up the ith_arguments of all predicates and put them in the same list
-    // for predicate in predicates {
-    //     for (ith, term) in predicate.get_args().iter().enumerate() {
-    //         nth_args[ith].push(term);
-    //     }
-    // }
-
-    // for ith_args in &nth_args {
-    //     for term in ith_args {
-    //         print!("{}, ", term);
-    //     }
-    //     println!();
-    // }
-
-    // for ith_args in nth_args {
-    //     for term in ith_args {
-    //         if is_ground_term(term) {}
-    //     }
-    // }
-
-    println!("Unifiable? {}", unifiable);
-
-    // unifier.insert(Var::new("x"), Obj!("a"));
-    // unifier.insert(Var::new("y"), Fun!("f", [Var!("a")]));
     return Some(unifier);
 }
 
-fn unify_2_predicates(pred1: Pred, pred2: Pred, unifier: &mut Unifier) -> bool {
+fn predicates_unification(pred1: Pred, pred2: Pred, unifier: &mut Unifier) -> bool {
     let unifiable = true;
-
     let mut pairs_to_unify = vec![];
 
     let able_to_lineup = line_up_terms(pred1.get_args(), pred2.get_args(), &mut pairs_to_unify);
-
-    for (t1, t2) in &pairs_to_unify {
-        println!("Pair: {}, {}", t1, t2);
-    }
-    println!("------");
-
     if !able_to_lineup {
         return false;
     }
@@ -81,8 +47,18 @@ fn unify_2_predicates(pred1: Pred, pred2: Pred, unifier: &mut Unifier) -> bool {
     while i < pairs_to_unify.len() {
         match pairs_to_unify.get(i).unwrap() {
             (Term::Var(v), t) | (t, Term::Var(v)) => {
-                // unifier.insert(v.clone(), t.clone());
-                // unifier.iter_mut().map(|(_k, v)| *v = substitute_term(v, unifier));
+                let new_unifier = HashMap::from([(v.clone(), t.clone())]);
+
+                pairs_to_unify.iter_mut().for_each(|(t1, t2)| {
+                    *t1 = substitute_term(t1, &new_unifier);
+                    *t2 = substitute_term(t2, &new_unifier);
+                });
+
+                unifier
+                    .iter_mut()
+                    .for_each(|(_key, val)| *val = substitute_term(val, &new_unifier));
+
+                unifier.extend(new_unifier);
             }
             _ => unreachable!("Only attempt to unify variables to terms"),
         }
@@ -228,7 +204,7 @@ mod tests {
             unifier,
             HashMap::from([
                 (Var::new("x"), Obj!("a")),
-                (Var::new("y"), Fun!("f", [Var!("a")])),
+                (Var::new("y"), Fun!("f", [Obj!("a")])),
             ])
         ); // [x ↦ a, y ↦ f(a)]
     }
