@@ -46,7 +46,7 @@ pub struct Fun {
     args: Box<Vec<Term>>,
 }
 
-static CLAUSE_COUNTER: AtomicUsize = AtomicUsize::new(0);
+#[derive(Debug, PartialEq)]
 pub struct Clause {
     id: usize,
     formulas: Vec<Formula>,
@@ -97,6 +97,8 @@ impl Fun {
         &self.args
     }
 }
+
+static CLAUSE_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
 impl Clause {
     pub fn new(formulas: Vec<Formula>) -> Self {
@@ -177,6 +179,19 @@ impl Display for Fun {
             }
         }
         write!(f, ")")
+    }
+}
+
+impl Display for Clause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "C{}: {{", self.id)?;
+        for (index, arg) in self.formulas.iter().enumerate() {
+            write!(f, "{arg}")?;
+            if index != self.formulas.len() - 1 {
+                write!(f, ", ")?;
+            }
+        }
+        write!(f, "}}")
     }
 }
 
