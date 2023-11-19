@@ -1,0 +1,2 @@
+forall z.(~p(x,f(y)) \/ q(z))
+~(exists y.(forall z.((p(z, y)) <-> (~(exists x.((p(z, x)) /\ (p(x, z))))))))

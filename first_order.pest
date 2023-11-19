@@ -1,0 +1,32 @@
+program = _{ SOI ~ formula ~ EOI }
+formula = { atom ~ (bin_op ~ atom)* }
+atom = _{ unary_op? ~ primary }
+primary = _{ top | bottom | predicate | "(" ~ formula ~ ")" }
+
+top = { "true" }
+bottom = { "false" }
+
+unary_op = _{ neg | forall | exists }
+neg = { "~" }
+forall = { "forall " ~ variable ~ "." }
+exists = { "exists " ~ variable ~ "." }
+
+bin_op = _{ and | or | imply | iff }
+and = { "/\\" }
+or = { "\\/" }
+imply = { "->" }
+iff = { "<->" }
+
+// These 4 sets partition abcdefghijklmnopqrstuvwxyz by convention
+variable = { 'u'..'z' }
+constant = { 'a'..'e' | "o" }
+function = { function_id ~ "(" ~ args* ~ ")" }
+function_id = { 'f'..'n' }
+predicate = { predicate_id ~ "(" ~ args* ~ ")" }
+predicate_id = { 'p'..'t' }
+
+args = { term ~ ("," ~ term)* }
+
+term = _{ variable | constant | function }
+
+WHITESPACE = _{ " " }
