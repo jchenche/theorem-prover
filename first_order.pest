@@ -12,10 +12,10 @@ forall = { "forall " ~ variable ~ "." }
 exists = { "exists " ~ variable ~ "." }
 
 bin_op = _{ and | or | imply | iff }
-and = { "/\\" }
-or = { "\\/" }
-imply = { "->" }
 iff = { "<->" }
+imply = { "->" }
+or = { "\\/" }
+and = { "/\\" }
 
 // These 4 sets partition abcdefghijklmnopqrstuvwxyz by convention
 variable = { 'u'..'z' }

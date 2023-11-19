@@ -51,7 +51,7 @@ fn get_formulas() -> Vec<Formula> {
     for line in reader.lines() {
         match parsing::parse(line.expect("Failed to read the file")) {
             Some(formula) => formulas.push(formula),
-            None => {},
+            None => {}
         }
     }
     return formulas;

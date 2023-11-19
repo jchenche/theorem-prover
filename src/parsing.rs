@@ -13,7 +13,7 @@ pub fn parse(formula: String) -> Option<Formula> {
     match FormulaParser::parse(Rule::program, &formula) {
         Ok(mut pairs) => Some(parse_formula(pairs.next().unwrap().into_inner(), &pratt)),
         Err(e) => {
-            eprintln!("Parse failed: {:?}", e);
+            eprintln!("Parse failed: {:?} (moving on to the next formula)", e);
             None
         }
     }
@@ -29,7 +29,9 @@ pub fn parse_formula(pairs: Pairs<Rule>, pratt: &PrattParser<Rule>) -> Formula {
                     match pair.as_rule() {
                         Rule::predicate_id => predicate_id = pair.as_str(),
                         Rule::args => predicate_args = parse_term(pair.into_inner()),
-                        rule => unreachable!("Parser expected predicate id or terms, found {:?}", rule),
+                        rule => {
+                            unreachable!("Parser expected predicate id or terms, found {:?}", rule)
+                        }
                     }
                 }
                 assert!(predicate_id != "", "Predicates must have an id");
@@ -91,7 +93,9 @@ fn parse_term(pairs: Pairs<Rule>) -> Vec<Term> {
                     match token.as_rule() {
                         Rule::function_id => function_id = token.as_str(),
                         Rule::args => function_args = parse_term(token.into_inner()),
-                        rule => unreachable!("Parser expected function id or terms, found {:?}", rule),
+                        rule => {
+                            unreachable!("Parser expected function id or terms, found {:?}", rule)
+                        }
                     }
                 }
                 assert!(function_id != "", "Functions must have an id");
@@ -113,4 +117,53 @@ fn create_pratt_parser() -> PrattParser<Rule> {
         .op(Op::infix(and, Left))
         .op(Op::prefix(neg))
         .op(Op::prefix(forall) | Op::prefix(exists))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use theorem_prover::{
+        lang::{Formula, Pred, Term, Var},
+        And, Exists, Forall, Fun, Iff, Neg, Or, Pred, Var,
+    };
+
+    #[test]
+    fn test_parse_simple() {
+        let raw_formula = String::from(r#"forall z.(~p(x,f(y)) \/ q(z) /\ r())"#);
+        let parsed_formula = Forall!(
+            "z",
+            And!(
+                Or!(
+                    Neg!(Pred!("p", [Var!("x"), Fun!("f", [Var!("y")])])),
+                    Pred!("q", [Var!("z")])
+                ),
+                Pred!("r", [])
+            )
+        );
+        assert_eq!(parse(raw_formula).unwrap(), parsed_formula);
+    }
+
+    #[test]
+    fn test_parse_complex() {
+        let raw_formula = String::from(
+            r#"~(exists y.(forall z.((p(z, y)) <-> (~(exists x.((p(z, x)) /\ (p(x, z))))))))"#,
+        );
+        let parsed_formula = Neg!(Exists!(
+            "y",
+            Forall!(
+                "z",
+                Iff!(
+                    Pred!("p", [Var!("z"), Var!("y")]),
+                    Neg!(Exists!(
+                        "x",
+                        And!(
+                            Pred!("p", [Var!("z"), Var!("x")]),
+                            Pred!("p", [Var!("x"), Var!("z")])
+                        )
+                    ))
+                )
+            )
+        )); // ¬(∃y.(∀z.((p(z, y)) ↔ (¬(∃x.((p(z, x)) ∧ (p(x, z))))))))
+        assert_eq!(parse(raw_formula).unwrap(), parsed_formula);
+    }
 }
