@@ -1,10 +1,10 @@
 use clap::Parser;
-use theorem_prover::is_valid;
 use std::path::PathBuf;
 use std::{
     fs::File,
     io::{BufRead, BufReader},
 };
+use theorem_prover::is_valid;
 use theorem_prover::lang::Formula;
 
 mod parsing;
