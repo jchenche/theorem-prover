@@ -1,5 +1,6 @@
+use clap::Parser;
+use std::path::PathBuf;
 use std::{
-    env,
     fs::File,
     io::{BufRead, BufReader},
 };
@@ -7,8 +8,22 @@ use theorem_prover::lang::Formula;
 
 mod parsing;
 
+/// A theorem prover that checks the validity of first-order formulas
+#[derive(Parser)]
+#[command(name = "prover", version)]
+struct Prover {
+    /// File that contains formulas, separated by lines
+    #[arg(value_name = "FILE_PATH")]
+    formulas: PathBuf,
+
+    /// Set a time limit for the execution
+    #[arg(short, long, value_name = "MINUTE", default_value_t = 1)]
+    limit: i32,
+}
+
 fn main() {
-    let formulas = get_formulas();
+    let prover = Prover::parse();
+    let formulas = get_formulas(prover.formulas);
     for formula in formulas {
         print!("{formula}");
         if theorem_prover::is_valid(formula) {
@@ -19,14 +34,8 @@ fn main() {
     }
 }
 
-fn get_formulas() -> Vec<Formula> {
+fn get_formulas(file_path: PathBuf) -> Vec<Formula> {
     let mut formulas = vec![];
-    let args: Vec<String> = env::args().collect();
-    if args.len() < 2 {
-        eprintln!("Please provide a file path containing formulas");
-        std::process::exit(1);
-    }
-    let file_path = &args[1];
     let file = File::open(file_path).expect("Failed to open the file");
     let reader = BufReader::new(file);
     for line in reader.lines() {

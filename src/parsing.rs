@@ -124,7 +124,7 @@ mod tests {
     use super::*;
     use theorem_prover::{
         lang::{Formula, Pred, Term, Var},
-        And, Exists, Forall, Fun, Iff, Neg, Or, Pred, Var, Obj
+        And, Exists, Forall, Fun, Iff, Neg, Obj, Or, Pred, Var,
     };
 
     #[test]
