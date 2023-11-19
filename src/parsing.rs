@@ -124,7 +124,7 @@ mod tests {
     use super::*;
     use theorem_prover::{
         lang::{Formula, Pred, Term, Var},
-        And, Exists, Forall, Fun, Iff, Neg, Or, Pred, Var,
+        And, Exists, Forall, Fun, Iff, Neg, Or, Pred, Var, Obj
     };
 
     #[test]
@@ -158,12 +158,12 @@ mod tests {
 
     #[test]
     fn test_parse_precedence() {
-        let raw_formula = String::from(r#"forall z.(~p(x,f(y)) \/ q(z) /\ r())"#);
+        let raw_formula = String::from(r#"forall z.(~p(x,f(y)) \/ q(a) /\ r())"#);
         let parsed_formula = Forall!(
             "z",
             Or!(
                 Neg!(Pred!("p", [Var!("x"), Fun!("f", [Var!("y")])])),
-                And!(Pred!("q", [Var!("z")]), Pred!("r", []))
+                And!(Pred!("q", [Obj!("a")]), Pred!("r", []))
             )
         );
         assert_eq!(parse(raw_formula).unwrap(), parsed_formula);
