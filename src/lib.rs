@@ -29,3 +29,35 @@ pub fn is_valid(formula: Formula) -> bool {
     let clausal = clausal::to_clausal(negated);
     resolution::resolve(clausal)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        lang::{Pred, Term, Var},
+        Forall, Neg, Pred, Var,
+    };
+
+    #[test]
+    fn test_basic_formula_1() {
+        // F : ¬( ∃y . ∀z . (p(z, y) ↔ ¬ ∃x . (p(z, x) ∧ p(x, z))))
+        let formula = Neg!(Exists!(
+            "y",
+            Forall!(
+                "z",
+                Iff!(
+                    Pred!("p", [Var!("z"), Var!("y")]),
+                    Neg!(Exists!(
+                        "x",
+                        And!(
+                            Pred!("p", [Var!("z"), Var!("x")]),
+                            Pred!("p", [Var!("x"), Var!("z")])
+                        )
+                    ))
+                )
+            )
+        ));
+
+        assert!(is_valid(formula));
+    }
+}
