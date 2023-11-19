@@ -22,12 +22,12 @@ fn and_to_or(formula: Formula) -> Formula {
     }
 }
 
-pub fn is_valid(formula: Formula) -> bool {
+pub fn is_valid(formula: Formula, limit_in_seconds: u64) -> Option<bool> {
     // let example_conversion = and_to_or(formula);
     // println!("{}", example_conversion);
     let negated = Formula::Neg(Box::new(formula));
     let clausal = clausal::to_clausal(negated);
-    resolution::resolve(clausal)
+    resolution::refute_resolution(clausal, limit_in_seconds)
 }
 
 #[cfg(test)]
@@ -37,6 +37,8 @@ mod tests {
         lang::{Pred, Term, Var},
         Forall, Neg, Pred, Var,
     };
+
+    const DEFAULT_LIMIT: u64 = 60;
 
     #[test]
     fn test_basic_formula_1() {
@@ -58,6 +60,6 @@ mod tests {
             )
         ));
 
-        assert!(is_valid(formula));
+        assert!(is_valid(formula, DEFAULT_LIMIT).unwrap());
     }
 }
