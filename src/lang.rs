@@ -123,13 +123,13 @@ impl Display for Formula {
             Formula::Pred(pred) => write!(f, "{pred}"),
             Formula::True => write!(f, "true"),
             Formula::False => write!(f, "false"),
-            Formula::And(l, r) => write!(f, "({l}) ∧ ({r})"),
-            Formula::Or(l, r) => write!(f, "({l}) v ({r})"),
-            Formula::Neg(l) => write!(f, "¬({l})"),
-            Formula::Imply(l, r) => write!(f, "({l}) → ({r})"),
-            Formula::Iff(l, r) => write!(f, "({l}) ↔ ({r})"),
-            Formula::Forall(v, l) => write!(f, "∀{v}.({l})"),
-            Formula::Exists(v, l) => write!(f, "∃{v}.({l})"),
+            Formula::And(l, r) => write!(f, "({l}) /\\ ({r})"),
+            Formula::Or(l, r) => write!(f, "({l}) \\/ ({r})"),
+            Formula::Neg(l) => write!(f, "~({l})"),
+            Formula::Imply(l, r) => write!(f, "({l}) -> ({r})"),
+            Formula::Iff(l, r) => write!(f, "({l}) <-> ({r})"),
+            Formula::Forall(v, l) => write!(f, "forall {v}.({l})"),
+            Formula::Exists(v, l) => write!(f, "exists {v}.({l})"),
         }
     }
 }
