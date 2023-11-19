@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, time::{Instant, Duration}};
 
 use crate::{
     lang::{Clause, Formula},
@@ -8,8 +8,8 @@ use crate::{
 pub fn resolve(mut clauses: Vec<Clause>) -> bool {
     let mut counter = 0;
     let mut resolved = Vec::new();
+    let start = Instant::now();
 
-    // TODO: add termination logic to prevent infinite loop (e.g. time limit or max number of clauses)
     loop {
         counter += 1;
         println!("\n------ Round {} of resolution ------\n", counter);
@@ -36,6 +36,7 @@ pub fn resolve(mut clauses: Vec<Clause>) -> bool {
                 for clause in resolved_clauses {
                     // finish resolution if there exists an empty clause
                     if clause.get_formulas().is_empty() {
+                        println!("\n------ Successfully derive an empty clause {} to refute resolution ------\n", clause);
                         return false;
                     }
                     new_clauses.push(clause);
@@ -44,6 +45,16 @@ pub fn resolve(mut clauses: Vec<Clause>) -> bool {
                 // mark 2 current clauses as resolved
                 resolved.push((clause1.get_id(), clause2.get_id()));
             }
+        }
+
+        if new_clauses.is_empty() {
+            println!("\n------ Unable to refute resolution as there is no new clause after a round of resolution ------ \n");
+            return true;
+        }
+
+        if Instant::now() - start >= Duration::from_secs(60) {
+            println!("\n------ Unable to refute resolution within the time limit ------ \n");
+            return true;
         }
 
         // add new clauses obtained from resolution into the vector of clauses
