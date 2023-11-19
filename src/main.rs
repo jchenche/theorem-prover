@@ -4,7 +4,6 @@ use std::{
     fs::File,
     io::{BufRead, BufReader},
 };
-use theorem_prover::is_valid;
 use theorem_prover::lang::Formula;
 
 mod parsing;
@@ -27,7 +26,7 @@ fn main() {
     let formulas = get_formulas(prover.formulas);
     for formula in formulas {
         print!("{formula}");
-        match is_valid(formula, prover.limit) {
+        match theorem_prover::is_valid(formula, prover.limit) {
             Some(true) => println!(" is valid!"),
             Some(false) => println!(" is invalid!"),
             None => println!(" may be valid or invalid. Since first order logic is undecidable, the program may run forever, so it can't tell us.")
