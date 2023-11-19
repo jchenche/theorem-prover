@@ -8,7 +8,7 @@ use crate::{
     unification::{most_general_unifier, substitute},
 };
 
-pub fn resolve(mut clauses: Vec<Clause>) -> bool {
+pub fn refute_resolution(mut clauses: Vec<Clause>, limit_in_seconds: u64) -> Option<bool> {
     let mut counter = 0;
     let mut resolved = Vec::new();
     let start = Instant::now();
@@ -43,7 +43,7 @@ pub fn resolve(mut clauses: Vec<Clause>) -> bool {
                             "\n------ Successfully found a resolution refutation {} ------\n",
                             clause
                         );
-                        return false;
+                        return Some(true);
                     }
                     new_clauses.push(clause);
                 }
@@ -54,15 +54,15 @@ pub fn resolve(mut clauses: Vec<Clause>) -> bool {
         }
 
         if new_clauses.is_empty() {
-            println!("\n------ Unable to find a resolution refutation as there is no new clause after a round of resolution ------ \n");
-            return true;
+            println!("\n------ No resolution refutation as there is no new clause after a round of resolution ------ \n");
+            return Some(false);
         }
 
-        if Instant::now() - start >= Duration::from_secs(60) {
+        if Instant::now() - start >= Duration::from_secs(limit_in_seconds) {
             println!(
-                "\n------ Unable to find a resolution refutation within the time limit ------ \n"
+                "\n------ Unable to determine whether there is a resolution refutation within the time limit ------ \n"
             );
-            return true;
+            return None;
         }
 
         // add new clauses obtained from resolution into the vector of clauses
@@ -160,6 +160,8 @@ mod tests {
         Fun, Neg, Obj, Pred, Var,
     };
 
+    const DEFAULT_LIMIT: u64 = 60;
+
     #[test]
     fn test_unbox_one_and_only_one_negation() {
         let p1 = Pred!("p", [Obj!("a"), Var!("y")]); // p(a, y)
@@ -216,7 +218,7 @@ mod tests {
     }
 
     #[test]
-    fn test_basic_resolve_1() {
+    fn test_basic_resolution_refutation_1() {
         let p1 = Pred!("happy", [Var!("x")]); // happy(x)
         let p2 = Pred!("sad", [Var!("x")]); // sad(x)
         let p3 = Neg!(Pred!("sad", [Var!("y")])); // ~sad(y)
@@ -226,11 +228,11 @@ mod tests {
         let c2 = Clause::new(vec![p3]); // C2: {~sad(y)}
         let c3 = Clause::new(vec![p4]); // C3: {~happy(mother(Joe))}
 
-        assert!(!resolve(vec![c1, c2, c3]));
+        assert!(refute_resolution(vec![c1, c2, c3], DEFAULT_LIMIT).unwrap());
     }
 
     #[test]
-    fn test_basic_resolve_2() {
+    fn test_basic_resolution_refutation_2() {
         let p1 = Pred!("p", [Var!("x")]); // p(x)
         let p2 = Pred!("p", [Var!("y")]); // p(y)
         let p3 = Neg!(Pred!("p", [Obj!("a")])); // ~p(a)
@@ -239,11 +241,11 @@ mod tests {
         let c1 = Clause::new(vec![p1, p2]); // C1: {p(x), p(y)}
         let c2 = Clause::new(vec![p3, p4]); // C2: {~p(a), ~p(b)}
 
-        assert!(!resolve(vec![c1, c2]));
+        assert!(refute_resolution(vec![c1, c2], DEFAULT_LIMIT).unwrap());
     }
 
     #[test]
-    fn test_basic_resolve_3() {
+    fn test_basic_resolution_refutation_3() {
         let p1 = Neg!(Pred!("p", [Var!("z"), Obj!("a")])); // ~p(z, a)
         let p2 = Neg!(Pred!("p", [Var!("z"), Var!("x")])); // ~p(z, x)
         let p3 = Neg!(Pred!("p", [Var!("x"), Var!("z")])); // ~p(x, z)
@@ -256,11 +258,11 @@ mod tests {
         let c2 = Clause::new(vec![p4, p5]); // C2: {p(y, a), p(y, f(y))}
         let c3 = Clause::new(vec![p6, p7]); // C3: {p(y, a), p(f(w), w)}
 
-        assert!(!resolve(vec![c1, c2, c3]));
+        assert!(refute_resolution(vec![c1, c2, c3], DEFAULT_LIMIT).unwrap());
     }
 
     #[test]
-    fn test_basic_resolve_4() {
+    fn test_basic_resolution_refutation_4() {
         let p1 = Pred!("loves", [Var!("x"), Fun!("lover", [Var!("x")])]); // loves(x, lover(x))
         let p2 = Neg!(Pred!("loves", [Var!("y"), Var!("z")])); // ~loves(y, z)
         let p3 = Pred!("loves", [Var!("w"), Var!("y")]); // loves(w, y)
@@ -270,6 +272,6 @@ mod tests {
         let c2 = Clause::new(vec![p2, p3]);
         let c3 = Clause::new(vec![p4]);
 
-        assert!(!resolve(vec![c1, c2, c3]));
+        assert!(refute_resolution(vec![c1, c2, c3], DEFAULT_LIMIT).unwrap());
     }
 }

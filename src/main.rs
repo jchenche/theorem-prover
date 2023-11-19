@@ -1,4 +1,5 @@
 use clap::Parser;
+use theorem_prover::is_valid;
 use std::path::PathBuf;
 use std::{
     fs::File,
@@ -17,8 +18,8 @@ struct Prover {
     formulas: PathBuf,
 
     /// Set a time limit for the execution
-    #[arg(short, long, value_name = "MINUTE", default_value_t = 1)]
-    limit: i32,
+    #[arg(short, long, value_name = "SECOND", default_value_t = 60)]
+    limit: u64,
 }
 
 fn main() {
@@ -26,10 +27,10 @@ fn main() {
     let formulas = get_formulas(prover.formulas);
     for formula in formulas {
         print!("{formula}");
-        if theorem_prover::is_valid(formula) {
-            println!(" is valid!");
-        } else {
-            println!(" may be valid or invalid. Since first order logic is undecidable, the program may run forever, so it can't tell us.");
+        match is_valid(formula, prover.limit) {
+            Some(true) => println!(" is valid!"),
+            Some(false) => println!(" is invalid!"),
+            None => println!(" may be valid or invalid. Since first order logic is undecidable, the program may run forever, so it can't tell us.")
         }
     }
 }
