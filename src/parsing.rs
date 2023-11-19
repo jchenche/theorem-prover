@@ -19,7 +19,19 @@ pub fn parse(formula: String) -> Option<Formula> {
     }
 }
 
-pub fn parse_formula(pairs: Pairs<Rule>, pratt: &PrattParser<Rule>) -> Formula {
+fn create_pratt_parser() -> PrattParser<Rule> {
+    use pest::pratt_parser::{Assoc::*, Op};
+    use Rule::*;
+    PrattParser::new()
+        .op(Op::infix(iff, Left))
+        .op(Op::infix(imply, Left))
+        .op(Op::infix(or, Left))
+        .op(Op::infix(and, Left))
+        .op(Op::prefix(neg))
+        .op(Op::prefix(forall) | Op::prefix(exists))
+}
+
+fn parse_formula(pairs: Pairs<Rule>, pratt: &PrattParser<Rule>) -> Formula {
     pratt
         .map_primary(|primary| match primary.as_rule() {
             Rule::predicate => {
@@ -105,18 +117,6 @@ fn parse_term(pairs: Pairs<Rule>) -> Vec<Term> {
         }
     }
     return args;
-}
-
-fn create_pratt_parser() -> PrattParser<Rule> {
-    use pest::pratt_parser::{Assoc::*, Op};
-    use Rule::*;
-    PrattParser::new()
-        .op(Op::infix(iff, Left))
-        .op(Op::infix(imply, Left))
-        .op(Op::infix(or, Left))
-        .op(Op::infix(and, Left))
-        .op(Op::prefix(neg))
-        .op(Op::prefix(forall) | Op::prefix(exists))
 }
 
 #[cfg(test)]
