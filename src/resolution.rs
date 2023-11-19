@@ -1,4 +1,7 @@
-use std::{collections::HashSet, time::{Instant, Duration}};
+use std::{
+    collections::HashSet,
+    time::{Duration, Instant},
+};
 
 use crate::{
     lang::{Clause, Formula},
@@ -36,7 +39,10 @@ pub fn resolve(mut clauses: Vec<Clause>) -> bool {
                 for clause in resolved_clauses {
                     // finish resolution if there exists an empty clause
                     if clause.get_formulas().is_empty() {
-                        println!("\n------ Successfully derive an empty clause {} to refute resolution ------\n", clause);
+                        println!(
+                            "\n------ Successfully found a resolution refutation {} ------\n",
+                            clause
+                        );
                         return false;
                     }
                     new_clauses.push(clause);
@@ -48,12 +54,14 @@ pub fn resolve(mut clauses: Vec<Clause>) -> bool {
         }
 
         if new_clauses.is_empty() {
-            println!("\n------ Unable to refute resolution as there is no new clause after a round of resolution ------ \n");
+            println!("\n------ Unable to find a resolution refutation as there is no new clause after a round of resolution ------ \n");
             return true;
         }
 
         if Instant::now() - start >= Duration::from_secs(60) {
-            println!("\n------ Unable to refute resolution within the time limit ------ \n");
+            println!(
+                "\n------ Unable to find a resolution refutation within the time limit ------ \n"
+            );
             return true;
         }
 
@@ -247,6 +255,20 @@ mod tests {
         let c1 = Clause::new(vec![p1, p2, p3]); // C1: {~p(z, a), ~p(z, x), ~p(x, z)}
         let c2 = Clause::new(vec![p4, p5]); // C2: {p(y, a), p(y, f(y))}
         let c3 = Clause::new(vec![p6, p7]); // C3: {p(y, a), p(f(w), w)}
+
+        assert!(!resolve(vec![c1, c2, c3]));
+    }
+
+    #[test]
+    fn test_basic_resolve_4() {
+        let p1 = Pred!("loves", [Var!("x"), Fun!("lover", [Var!("x")])]); // loves(x, lover(x))
+        let p2 = Neg!(Pred!("loves", [Var!("y"), Var!("z")])); // ~loves(y, z)
+        let p3 = Pred!("loves", [Var!("w"), Var!("y")]); // loves(w, y)
+        let p4 = Neg!(Pred!("loves", [Obj!("Joe"), Obj!("Jane")])); // ~loves(Joe, Jane)
+
+        let c1 = Clause::new(vec![p1]);
+        let c2 = Clause::new(vec![p2, p3]);
+        let c3 = Clause::new(vec![p4]);
 
         assert!(!resolve(vec![c1, c2, c3]));
     }
