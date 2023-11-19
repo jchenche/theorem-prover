@@ -3,31 +3,12 @@ use std::{
     fs::File,
     io::{BufRead, BufReader},
 };
-use theorem_prover::{
-    lang::{Formula, Pred, Term, Var},
-    And, Exists, Forall, Iff, Neg, Pred, Var,
-};
+use theorem_prover::lang::Formula;
 
 mod parsing;
 
 fn main() {
     let formulas = get_formulas();
-    // let formula = Neg!(Exists!(
-    //     "y",
-    //     Forall!(
-    //         "z",
-    //         Iff!(
-    //             Pred!("p", [Var!("z"), Var!("y")]),
-    //             Neg!(Exists!(
-    //                 "x",
-    //                 And!(
-    //                     Pred!("p", [Var!("z"), Var!("x")]),
-    //                     Pred!("p", [Var!("x"), Var!("z")])
-    //                 )
-    //             ))
-    //         )
-    //     )
-    // )); // ¬(∃y.(∀z.((p(z, y)) ↔ (¬(∃x.((p(z, x)) ∧ (p(x, z))))))))
     for formula in formulas {
         print!("{formula}");
         if theorem_prover::is_valid(formula) {

@@ -129,15 +129,41 @@ mod tests {
 
     #[test]
     fn test_parse_simple() {
-        let raw_formula = String::from(r#"forall z.(~p(x,f(y)) \/ q(z) /\ r())"#);
+        let raw_formula = String::from(r#"forall z.(~p(x,f(y)) /\ q(z) \/ r())"#);
         let parsed_formula = Forall!(
             "z",
-            And!(
-                Or!(
+            Or!(
+                And!(
                     Neg!(Pred!("p", [Var!("x"), Fun!("f", [Var!("y")])])),
                     Pred!("q", [Var!("z")])
                 ),
                 Pred!("r", [])
+            )
+        );
+        assert_eq!(parse(raw_formula).unwrap(), parsed_formula);
+    }
+
+    #[test]
+    fn test_parse_assoc() {
+        let raw_formula = String::from(r#"p(x,f(y)) /\ q(z) /\ r()"#);
+        let parsed_formula = And!(
+            And!(
+                Pred!("p", [Var!("x"), Fun!("f", [Var!("y")])]),
+                Pred!("q", [Var!("z")])
+            ),
+            Pred!("r", [])
+        );
+        assert_eq!(parse(raw_formula).unwrap(), parsed_formula);
+    }
+
+    #[test]
+    fn test_parse_precedence() {
+        let raw_formula = String::from(r#"forall z.(~p(x,f(y)) \/ q(z) /\ r())"#);
+        let parsed_formula = Forall!(
+            "z",
+            Or!(
+                Neg!(Pred!("p", [Var!("x"), Fun!("f", [Var!("y")])])),
+                And!(Pred!("q", [Var!("z")]), Pred!("r", []))
             )
         );
         assert_eq!(parse(raw_formula).unwrap(), parsed_formula);
