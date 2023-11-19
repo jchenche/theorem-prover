@@ -34,8 +34,8 @@ pub fn is_valid(formula: Formula) -> bool {
 mod tests {
     use super::*;
     use crate::{
-        lang::{Fun, Obj, Pred, Term, Var},
-        Forall, Fun, Neg, Obj, Pred, Var,
+        lang::{Pred, Term, Var},
+        Forall, Neg, Pred, Var,
     };
 
     #[test]
