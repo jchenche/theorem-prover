@@ -172,7 +172,7 @@ mod tests {
     #[test]
     fn test_parse_complex() {
         let raw_formula = String::from(
-            r#"~(exists y. (forall z. (p(z, y) <-> ~(exists x . (p(z, x) /\ p(x, z))))))"#,
+            r#"~(exists y. (forall z. (p(z, y) <-> ~(exists x. (p(z, x) /\ p(x, z))))))"#,
         );
         let parsed_formula = Neg!(Exists!(
             "y",
