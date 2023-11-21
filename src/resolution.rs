@@ -286,11 +286,11 @@ mod tests {
     fn test_basic_resolution_refutation_5() {
         let p1 = Neg!(Pred!("p", [Var!("x")])); // ~p(x)
         let p2 = Pred!("q", [Var!("x")]); // q(x)
-        let p3 = Neg!(Pred!("q", [Var!("x")])); // ~q(x)
-        let p4 = Pred!("p", [Var!("x")]); // p(x)
+        let p3 = Neg!(Pred!("q", [Var!("y")])); // ~q(y)
+        let p4 = Pred!("p", [Var!("y")]); // p(y)
 
         let c1 = Clause::new(vec![p1, p2]); // C1: {~p(x), q(x)}
-        let c2 = Clause::new(vec![p3, p4]); // C2: {~q(x), p(x)}
+        let c2 = Clause::new(vec![p3, p4]); // C2: {~q(y), p(y)}
 
         assert!(refute_resolution(vec![c1, c2], 5).is_none());
     }

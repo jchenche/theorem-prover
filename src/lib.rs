@@ -22,8 +22,8 @@ mod tests {
     const DEFAULT_LIMIT: u64 = 60;
 
     #[test]
-    fn test_basic_formula_1() {
-        // F : ¬( ∃y . ∀z . (p(z, y) ↔ ¬ ∃x . (p(z, x) ∧ p(x, z))))
+    fn test_valid_formula() {
+        // F : ~(exists y.(forall z.((p(z, y)) <-> (~(exists x.((p(z, x)) /\ (p(x, z))))))))
         let formula = Neg!(Exists!(
             "y",
             Forall!(
@@ -42,5 +42,33 @@ mod tests {
         ));
 
         assert!(is_valid(formula, DEFAULT_LIMIT).unwrap());
+    }
+
+    #[test]
+    fn test_invalid_formula() {
+        // F : exists x.(p(x)) -> forall x.(p(x))
+        let formula = Imply!(
+            Exists!("x", Pred!("p", [Var!("x")])),
+            Forall!("x", Pred!("p", [Var!("x")]))
+        );
+
+        assert!(!is_valid(formula, DEFAULT_LIMIT).unwrap());
+    }
+
+    #[test]
+    fn test_unknown_formula() {
+        // F: forall x.(forall y.((p(x) \/ ~q(x)) /\ (~p(y) /\ q(y))))
+        let formula = Forall!(
+            "x",
+            Forall!(
+                "y",
+                And!(
+                    Or!(Pred!("p", [Var!("x")]), Neg!(Pred!("q", [Var!("x")]))),
+                    Or!(Neg!(Pred!("p", [Var!("y")])), Pred!("q", [Var!("y")]))
+                )
+            )
+        );
+
+        assert!(is_valid(formula, DEFAULT_LIMIT).is_none());
     }
 }
