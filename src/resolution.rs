@@ -20,6 +20,14 @@ pub fn refute_resolution(mut clauses: Vec<Clause>, limit_in_seconds: u64) -> Opt
         let mut new_clauses = Vec::new();
         for i in 0..clauses.len() {
             for j in (i + 1)..clauses.len() {
+                // end the resolution process if it has already exceeded the time limit
+                if Instant::now() - start >= Duration::from_secs(limit_in_seconds) {
+                    println!(
+                        "\n------ Unable to determine whether there is a resolution refutation within the time limit ------ \n"
+                    );
+                    return None;
+                }
+
                 let clause1 = clauses.get(i).unwrap();
                 let clause2 = clauses.get(j).unwrap();
                 println!("Attempting to resolve {} and {}", clause1, clause2);
@@ -58,13 +66,6 @@ pub fn refute_resolution(mut clauses: Vec<Clause>, limit_in_seconds: u64) -> Opt
             return Some(false);
         }
 
-        if Instant::now() - start >= Duration::from_secs(limit_in_seconds) {
-            println!(
-                "\n------ Unable to determine whether there is a resolution refutation within the time limit ------ \n"
-            );
-            return None;
-        }
-
         // add new clauses obtained from resolution into the vector of clauses
         clauses.append(&mut new_clauses);
         println!(
@@ -78,38 +79,44 @@ pub fn refute_resolution(mut clauses: Vec<Clause>, limit_in_seconds: u64) -> Opt
 fn resolve_clauses(clause1: &Clause, clause2: &Clause) -> Vec<Clause> {
     let mut new_clauses = Vec::new();
 
-    // pick one formula from each clause sequentially for resolution
+    // pick one formula from each clause iteratively for resolution
     for formula1 in clause1.get_formulas() {
         for formula2 in clause2.get_formulas() {
-            // skip if both or none of the formulas are in the negation form
-            let result = unbox_one_and_only_one_negation(formula1, formula2);
+            // ensure that one formula is in the negation form whereas the other is not
+            let result = undo_one_and_only_one_negation(formula1, formula2);
             if result.is_none() {
                 // println!("{} and {} are not eligible for resolution", formula1, formula2);
+
                 continue;
             }
 
+            // (~f1, f2) = (formula1, formula2) OR (f1, ~f2) = (formula1, formula2)
+            // f1 and f2 are in the non-negation form
             let (f1, f2) = result.unwrap();
-            // unify 2 formulas if possible and then use mgu to obtain a new clause
+            // unify the 2 formulas and then use mgu (if possible) to derive a new clause
             if let Some(unifier) = most_general_unifier(vec![f1, f2]) {
                 // println!("mgu of {} and {}: {:?}", formula1, formula2, unifier);
+
                 // use HashSet to remove duplicate formulas
                 let mut new_formulas = HashSet::new();
 
+                // perform substitution and filter out resolved formulas to build a new set of formulas
                 let substituted_formula1 = substitute(formula1, &unifier);
+                for formula in clause1.get_formulas() {
+                    let substituted_formula = substitute(formula, &unifier);
+                    if substituted_formula != substituted_formula1 {
+                        new_formulas.insert(substituted_formula);
+                    }
+                }
                 let substituted_formula2 = substitute(formula2, &unifier);
-                // use mgu for substitution to obtain new formulas
-                for formulas in [clause1.get_formulas(), clause2.get_formulas()] {
-                    for formula in formulas {
-                        let substituted_formula = substitute(formula, &unifier);
-                        if substituted_formula != substituted_formula1
-                            && substituted_formula != substituted_formula2
-                        {
-                            new_formulas.insert(substituted_formula);
-                        }
+                for formula in clause2.get_formulas() {
+                    let substituted_formula = substitute(formula, &unifier);
+                    if substituted_formula != substituted_formula2 {
+                        new_formulas.insert(substituted_formula);
                     }
                 }
 
-                // create a new clause from the substituted formulas
+                // derive a new clause from the new set of formulas
                 new_clauses.push(Clause::new(new_formulas.into_iter().collect()));
             }
         }
@@ -118,7 +125,7 @@ fn resolve_clauses(clause1: &Clause, clause2: &Clause) -> Vec<Clause> {
     new_clauses
 }
 
-fn unbox_one_and_only_one_negation<'a>(
+fn undo_one_and_only_one_negation<'a>(
     formula1: &'a Formula,
     formula2: &'a Formula,
 ) -> Option<(&'a Formula, &'a Formula)> {
@@ -163,19 +170,19 @@ mod tests {
     const DEFAULT_LIMIT: u64 = 60;
 
     #[test]
-    fn test_unbox_one_and_only_one_negation() {
+    fn test_undo_one_and_only_one_negation() {
         let p1 = Pred!("p", [Obj!("a"), Var!("y")]); // p(a, y)
         let p2 = Neg!(Pred!("p", [Obj!("x"), Var!("y")])); // ~p(x, y)
 
-        assert!(unbox_one_and_only_one_negation(&p1, &p1).is_none());
+        assert!(undo_one_and_only_one_negation(&p1, &p1).is_none());
         assert_eq!(
             (
                 &Pred!("p", [Obj!("a"), Var!("y")]),
                 &Pred!("p", [Obj!("x"), Var!("y")])
             ),
-            unbox_one_and_only_one_negation(&p1, &p2).unwrap()
+            undo_one_and_only_one_negation(&p1, &p2).unwrap()
         );
-        assert!(unbox_one_and_only_one_negation(&p2, &p2).is_none());
+        assert!(undo_one_and_only_one_negation(&p2, &p2).is_none());
     }
 
     #[test]
@@ -273,5 +280,30 @@ mod tests {
         let c3 = Clause::new(vec![p4]);
 
         assert!(refute_resolution(vec![c1, c2, c3], DEFAULT_LIMIT).unwrap());
+    }
+
+    #[test]
+    fn test_basic_resolution_refutation_5() {
+        let p1 = Neg!(Pred!("p", [Var!("x")])); // ~p(x)
+        let p2 = Pred!("q", [Var!("x")]); // q(x)
+        let p3 = Neg!(Pred!("q", [Var!("x")])); // ~q(x)
+        let p4 = Pred!("p", [Var!("x")]); // p(x)
+
+        let c1 = Clause::new(vec![p1, p2]); // C2: {~p(x), q(x)}
+        let c2 = Clause::new(vec![p3, p4]); // C3: {~q(x), p(x)}
+
+        assert!(refute_resolution(vec![c1, c2], 5).is_none());
+    }
+
+    #[test]
+    fn test_basic_resolution_refutation_6() {
+        let p1 = Neg!(Pred!("p", [Var!("x")])); // ~p(x)
+        let p2 = Pred!("q", [Var!("x")]); // q(x)
+        let p3 = Neg!(Pred!("q", [Var!("x")])); // ~q(x)
+
+        let c1 = Clause::new(vec![p1, p2]); // C2: {~p(x), q(x)}
+        let c2 = Clause::new(vec![p3]); // C3: {~q(x)}
+
+        assert!(!refute_resolution(vec![c1, c2], DEFAULT_LIMIT).unwrap());
     }
 }
