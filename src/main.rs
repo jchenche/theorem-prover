@@ -1,4 +1,6 @@
 use clap::Parser;
+use std::fs::OpenOptions;
+use std::io::Write;
 use std::path::PathBuf;
 use std::{
     fs::File,
@@ -24,14 +26,28 @@ struct Prover {
 fn main() {
     let prover = Prover::parse();
     let formulas = get_formulas(prover.formulas);
-    for formula in formulas {
-        print!("{formula}");
+
+    let mut output = String::new();
+    for (index, formula) in formulas.into_iter().enumerate() {
+        if index != 0 {
+            output += "\n";
+        }
+        output += formula.to_string().as_str();
         match theorem_prover::is_valid(formula, prover.limit) {
-            Some(true) => println!(" is valid!"),
-            Some(false) => println!(" is invalid!"),
-            None => println!(" may be valid or invalid. Since first order logic is undecidable, the program may run forever, so it can't tell us.")
+            Some(true) => output += " is valid.",
+            Some(false) => output += " is invalid.",
+            None => output += " may be valid or invalid. Since first order logic is undecidable, the program may run forever, so it can't tell us.",
         }
     }
+
+    // write the output string to file for comparison
+    let mut file = OpenOptions::new()
+        .create(true)
+        .write(true)
+        .truncate(true)
+        .open("output.txt")
+        .expect("Unable to open file for output");
+    file.write_all(output.as_bytes()).unwrap();
 }
 
 fn get_formulas(file_path: PathBuf) -> Vec<Formula> {
