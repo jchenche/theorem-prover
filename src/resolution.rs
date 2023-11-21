@@ -275,9 +275,9 @@ mod tests {
         let p3 = Pred!("loves", [Var!("w"), Var!("y")]); // loves(w, y)
         let p4 = Neg!(Pred!("loves", [Obj!("Joe"), Obj!("Jane")])); // ~loves(Joe, Jane)
 
-        let c1 = Clause::new(vec![p1]);
-        let c2 = Clause::new(vec![p2, p3]);
-        let c3 = Clause::new(vec![p4]);
+        let c1 = Clause::new(vec![p1]); // C1: {loves(x, lover(x))}
+        let c2 = Clause::new(vec![p2, p3]); // C2: {~loves(y, z), loves(w, y)}
+        let c3 = Clause::new(vec![p4]); // C3: {~loves(Joe, Jane)}
 
         assert!(refute_resolution(vec![c1, c2, c3], DEFAULT_LIMIT).unwrap());
     }
@@ -289,8 +289,8 @@ mod tests {
         let p3 = Neg!(Pred!("q", [Var!("x")])); // ~q(x)
         let p4 = Pred!("p", [Var!("x")]); // p(x)
 
-        let c1 = Clause::new(vec![p1, p2]); // C2: {~p(x), q(x)}
-        let c2 = Clause::new(vec![p3, p4]); // C3: {~q(x), p(x)}
+        let c1 = Clause::new(vec![p1, p2]); // C1: {~p(x), q(x)}
+        let c2 = Clause::new(vec![p3, p4]); // C2: {~q(x), p(x)}
 
         assert!(refute_resolution(vec![c1, c2], 5).is_none());
     }
@@ -301,8 +301,8 @@ mod tests {
         let p2 = Pred!("q", [Var!("x")]); // q(x)
         let p3 = Neg!(Pred!("q", [Var!("x")])); // ~q(x)
 
-        let c1 = Clause::new(vec![p1, p2]); // C2: {~p(x), q(x)}
-        let c2 = Clause::new(vec![p3]); // C3: {~q(x)}
+        let c1 = Clause::new(vec![p1, p2]); // C1: {~p(x), q(x)}
+        let c2 = Clause::new(vec![p3]); // C2: {~q(x)}
 
         assert!(!refute_resolution(vec![c1, c2], DEFAULT_LIMIT).unwrap());
     }
