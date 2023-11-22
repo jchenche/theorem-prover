@@ -102,21 +102,29 @@ mod tests {
             "x",
             Exists! (
                 "y", 
-                Imply! (
-                    Pred! ("p", [Var! ("x")]),
-                    Imply! (
-                        Exists! (
-                            "x", 
-                            Imply! (
-                                Pred! ("q", [Var! ("x")]),
-                                Fun! ("f", [Var! ("x"), Var! ("y")])
-                            )
-                        ),
-                        Pred! ("q", [Var! ("x")])
+                formula
+            )
+        );
+        assert_eq!(result_formula, remove_free_vars(formula));
+    }
+
+    fn test_remove_free_vars_2() {
+        let formula = Forall! (
+            "y",
+            And! (
+                Pred! ("p", [Var! ["y"]]),
+                Neg! (
+                    Forall! (
+                        "z",
+                        Imply! (
+                            Pred! ("r", [Var! ("z")]),
+                            Pred! ("q", [Var! ("y"), Var! ("z"), Var! ("w")])
+                        )
                     )
                 )
             )
         );
+        let result_formula = Exists! ("w", formula);
         assert_eq!(result_formula, remove_free_vars(formula));
     }
 }
