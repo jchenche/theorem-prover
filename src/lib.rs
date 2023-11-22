@@ -6,24 +6,26 @@ mod resolution;
 mod unification;
 
 pub fn is_valid(formula: Formula, limit_in_seconds: u64) -> Option<bool> {
+    validate_formula(&formula);
     let negated = Formula::Neg(Box::new(formula));
     let clausal = clausal::to_clausal(negated);
     resolution::refute_resolution(clausal, limit_in_seconds)
 }
 
+fn validate_formula(formula: &Formula) {
+    // To be implemented later (just panic if it's not right for now)
+    assert!(true, "The formula is not right. Make sure that functions and predicates of the same symbol have the same signatures");
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        lang::{Pred, Term, Var},
-        Forall, Neg, Pred, Var,
-    };
+    use crate::lang::{Pred, Term, Var};
 
     const DEFAULT_LIMIT: u64 = 60;
 
     #[test]
     fn test_valid_formula() {
-        // F : ~(exists y.(forall z.((p(z, y)) <-> (~(exists x.((p(z, x)) /\ (p(x, z))))))))
         let formula = Neg!(Exists!(
             "y",
             Forall!(
@@ -39,25 +41,21 @@ mod tests {
                     ))
                 )
             )
-        ));
-
+        )); // F : ~(exists y.(forall z.((p(z, y)) <-> (~(exists x.((p(z, x)) /\ (p(x, z))))))))
         assert!(is_valid(formula, DEFAULT_LIMIT).unwrap());
     }
 
     #[test]
     fn test_invalid_formula() {
-        // F : exists x.(p(x)) -> forall x.(p(x))
         let formula = Imply!(
             Exists!("x", Pred!("p", [Var!("x")])),
             Forall!("x", Pred!("p", [Var!("x")]))
-        );
-
+        ); // F : exists x.(p(x)) -> forall x.(p(x))
         assert!(!is_valid(formula, DEFAULT_LIMIT).unwrap());
     }
 
     #[test]
     fn test_unknown_formula() {
-        // F: forall x.(forall y.((p(x) \/ ~q(x)) /\ (~p(y) /\ q(y))))
         let formula = Forall!(
             "x",
             Forall!(
@@ -67,8 +65,7 @@ mod tests {
                     Or!(Neg!(Pred!("p", [Var!("y")])), Pred!("q", [Var!("y")]))
                 )
             )
-        );
-
+        ); // F: forall x.(forall y.((p(x) \/ ~q(x)) /\ (~p(y) /\ q(y))))
         assert!(is_valid(formula, DEFAULT_LIMIT).is_none());
     }
 }

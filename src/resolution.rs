@@ -1,11 +1,10 @@
-use std::{
-    collections::HashSet,
-    time::{Duration, Instant},
-};
-
 use crate::{
     lang::{Clause, Formula},
     unification::{most_general_unifier, substitute},
+};
+use std::{
+    collections::HashSet,
+    time::{Duration, Instant},
 };
 
 pub fn refute_resolution(mut clauses: Vec<Clause>, limit_in_seconds: u64) -> Option<bool> {
