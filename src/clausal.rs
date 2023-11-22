@@ -20,7 +20,7 @@ fn to_cnf(formula: Formula) -> Formula {
     todo!()
 }
 
-fn to_clausal_form(formula: Formula) -> Formula {
+fn to_clausal_form(formula: Formula) -> Vec<Clause> {
     todo!()
 }
 
