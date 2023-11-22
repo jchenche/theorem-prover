@@ -1,11 +1,57 @@
-use crate::lang::{Clause, Formula};
+use std::collections::{HashMap, HashSet};
 
-pub fn to_clausal(formula: Formula) -> Vec<Clause> {
-    todo!()
+use crate::lang::{Clause, Formula, Term, Var};
+
+mod remove_free_vars;
+
+type Scope = HashSet<Var>;
+
+struct Environment {
+    symbol_table: Vec<Scope>,
 }
 
-fn remove_free_vars(formula: Formula) -> Formula {
-    todo!()
+impl Environment {
+    pub fn new() -> Self {
+        Self {
+            symbol_table: vec![],
+        }
+    }
+
+    pub fn get_symbol_table(&mut self) -> &mut Vec<Scope> {
+        &mut self.symbol_table
+    }
+
+    pub fn push_scope(&mut self) {
+        self.symbol_table.push(HashSet::new());
+    }
+
+    pub fn pop_scope(&mut self) {
+        self.symbol_table.pop();
+    }
+
+    pub fn add(&mut self, var: Var) {
+        let sym_tab = self.get_symbol_table();
+        let sym_tab_len = sym_tab.len();
+        sym_tab.get_mut(sym_tab_len - 1).unwrap().insert(var);
+    }
+
+    pub fn find(&self, var: &Var) -> Option<Var> {
+        for scope in self.symbol_table.iter().rev() {
+            if scope.contains(var) {
+                return Some(var.clone());
+            }
+        }
+        None
+    }
+}
+
+pub fn to_clausal(formula: Formula) -> Vec<Clause> {
+    let sentence = remove_free_vars::remove_free_vars(formula);
+    let pnf = to_pnf(sentence);
+    let skolem_norm = skolemize(pnf);
+    let cnf = to_cnf(skolem_norm);
+    let clausal_form = to_clausal_form(cnf);
+    return clausal_form;
 }
 
 fn to_pnf(formula: Formula) -> Formula {
@@ -22,6 +68,21 @@ fn to_cnf(formula: Formula) -> Formula {
 
 fn to_clausal_form(formula: Formula) -> Vec<Clause> {
     todo!()
+}
+
+fn template(formula: Formula) {
+    match formula {
+        Formula::Pred(pred) => todo!(),
+        Formula::True => todo!(),
+        Formula::False => todo!(),
+        Formula::And(left, right) => todo!(),
+        Formula::Or(left, right) => todo!(),
+        Formula::Neg(subformula) => todo!(),
+        Formula::Imply(left, right) => todo!(),
+        Formula::Iff(left, right) => todo!(),
+        Formula::Forall(var, subformula) => todo!(),
+        Formula::Exists(var, subformula) => todo!(),
+    }
 }
 
 // example transformation
@@ -81,50 +142,5 @@ mod tests {
 
         let expected_result = vec![c1, c2, c3];
         assert_eq!(to_clausal(formula), expected_result);
-    }
-
-    #[test]
-    fn test_remove_free_vars_1() {
-        let formula = Imply! (
-            Pred! ("p", [Var! ("x")]),
-            Imply! (
-                Exists! (
-                    "x", 
-                    Imply! (
-                        Pred! ("q", [Var! ("x")]),
-                        Fun! ("f", [Var! ("x"), Var! ("y")])
-                    )
-                ),
-                Pred! ("q", [Var! ("x")])
-            )
-        );
-        let result_formula = Exists! (
-            "x",
-            Exists! (
-                "y", 
-                formula
-            )
-        );
-        assert_eq!(result_formula, remove_free_vars(formula));
-    }
-
-    fn test_remove_free_vars_2() {
-        let formula = Forall! (
-            "y",
-            And! (
-                Pred! ("p", [Var! ["y"]]),
-                Neg! (
-                    Forall! (
-                        "z",
-                        Imply! (
-                            Pred! ("r", [Var! ("z")]),
-                            Pred! ("q", [Var! ("y"), Var! ("z"), Var! ("w")])
-                        )
-                    )
-                )
-            )
-        );
-        let result_formula = Exists! ("w", formula);
-        assert_eq!(result_formula, remove_free_vars(formula));
     }
 }
