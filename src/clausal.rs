@@ -50,7 +50,7 @@ mod tests {
 
     #[test]
     fn test_to_clausal() {
-        let formula = Neg!(Exists!(
+        let formula = Neg!(Neg!(Exists!(
             "y",
             Forall!(
                 "z",
@@ -65,7 +65,7 @@ mod tests {
                     ))
                 )
             )
-        )); // ~(exists y.(forall z.((p(z, y)) <-> (~(exists x.((p(z, x)) /\ (p(x, z))))))))
+        ))); // ~(exists y.(forall z.((p(z, y)) <-> (~(exists x.((p(z, x)) /\ (p(x, z))))))))
 
         let p1 = Neg!(Pred!("p", [Var!("z"), Obj!("a")])); // ~p(z, a)
         let p2 = Neg!(Pred!("p", [Var!("z"), Var!("x")])); // ~p(z, x)
