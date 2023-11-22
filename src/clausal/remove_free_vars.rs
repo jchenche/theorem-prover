@@ -1,4 +1,4 @@
-use crate::lang::{Formula, Var, Term};
+use crate::lang::{Formula, Term, Var};
 
 use super::Environment;
 
@@ -84,20 +84,8 @@ mod tests {
                 Pred!("p", [Var!("x"), Var!("z")]),
                 Exists!("y", Pred!("q", [Var!("y"), Var!("w")]))
             )
-        );
-        let expected_result = Exists!(
-            "z",
-            Exists!(
-                "w",
-                Forall!(
-                    "x",
-                    And!(
-                        Pred!("p", [Var!("x"), Var!("z")]),
-                        Exists!("y", Pred!("q", [Var!("y"), Var!("w")]))
-                    )
-                )
-            )
-        );
+        ); // forall x. (p(x,z) /\ exists y. q(y,w))
+        let expected_result = Exists!("z", Exists!("w", formula.clone())); // exists z. (exists w. (forall x. (p(x,z) /\ exists y. q(y,w))))
         assert_eq!(remove_free_vars(formula), expected_result);
     }
 }

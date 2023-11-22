@@ -2,7 +2,11 @@ use std::collections::{HashMap, HashSet};
 
 use crate::lang::{Clause, Formula, Term, Var};
 
+mod prenex_norm;
 mod remove_free_vars;
+mod skolem_norm;
+mod conjunctive_norm;
+mod clausal_form;
 
 type Scope = HashSet<Var>;
 
@@ -47,27 +51,11 @@ impl Environment {
 
 pub fn to_clausal(formula: Formula) -> Vec<Clause> {
     let sentence = remove_free_vars::remove_free_vars(formula);
-    let pnf = to_pnf(sentence);
-    let skolem_norm = skolemize(pnf);
-    let cnf = to_cnf(skolem_norm);
-    let clausal_form = to_clausal_form(cnf);
+    let pnf = prenex_norm::to_pnf(sentence);
+    let skolem_norm = skolem_norm::skolemize(pnf);
+    let cnf = conjunctive_norm::to_cnf(skolem_norm);
+    let clausal_form = clausal_form::to_clausal_form(cnf);
     return clausal_form;
-}
-
-fn to_pnf(formula: Formula) -> Formula {
-    todo!()
-}
-
-fn skolemize(formula: Formula) -> Formula {
-    todo!()
-}
-
-fn to_cnf(formula: Formula) -> Formula {
-    todo!()
-}
-
-fn to_clausal_form(formula: Formula) -> Vec<Clause> {
-    todo!()
 }
 
 fn template(formula: Formula) {
