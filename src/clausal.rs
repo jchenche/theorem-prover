@@ -4,6 +4,26 @@ pub fn to_clausal(formula: Formula) -> Vec<Clause> {
     todo!()
 }
 
+fn remove_free_vars(formula: Formula) -> Formula {
+    todo!()
+}
+
+fn to_pnf(formula: Formula) -> Formula {
+    todo!()
+}
+
+fn skolemize(formula: Formula) -> Formula {
+    todo!()
+}
+
+fn to_cnf(formula: Formula) -> Formula {
+    todo!()
+}
+
+fn to_clausal_form(formula: Formula) -> Formula {
+    todo!()
+}
+
 // example transformation
 fn and_to_or(formula: Formula) -> Formula {
     match formula {
