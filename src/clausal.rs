@@ -2,11 +2,11 @@ use std::collections::{HashMap, HashSet};
 
 use crate::lang::{Clause, Formula, Term, Var};
 
+mod clausal_form;
+mod conjunctive_norm;
 mod prenex_norm;
 mod remove_free_vars;
 mod skolem_norm;
-mod conjunctive_norm;
-mod clausal_form;
 
 type Scope = HashSet<Var>;
 

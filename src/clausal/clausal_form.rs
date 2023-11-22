@@ -1,4 +1,4 @@
-use crate::lang::{Formula, Term, Var, Clause};
+use crate::lang::{Clause, Formula, Term, Var};
 
 use super::Environment;
 
