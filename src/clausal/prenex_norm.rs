@@ -467,14 +467,14 @@ mod tests {
         ); // forall w. ((~exists x. exists y. forall z. (p(x, z) -> q(y, z))) \/ exists z. p(w, z))
         let result_formula = Forall!(
             "w",
-            Exists!(
-                "z0",
+            Forall!(
+                "x",
                 Forall!(
-                    "x",
-                    Forall!(
-                        "y",
+                    "y",
+                    Exists!(
+                        "z",
                         Exists!(
-                            "z",
+                            "z0",
                             Or!(
                                 And!(
                                     Pred!("p", [Var!("x"), Var!("z")]),
@@ -486,7 +486,7 @@ mod tests {
                     )
                 )
             )
-        ); // forall w. exists z0. forall x. forall y. exists z. ((p(x, z) /\ ~q(y, z)) \/ p(w, z0))
+        ); // forall w. forall x. forall y. exists z. exists z0. ((p(x, z) /\ ~q(y, z)) \/ p(w, z0))
         let mut used_vars =
             HashSet::from([Var::new("w"), Var::new("x"), Var::new("y"), Var::new("z")]);
         assert_eq!(to_pnf(formula, &mut used_vars), result_formula);
