@@ -94,7 +94,7 @@ mod tests {
     use super::*;
     use crate::{
         lang::{Fun, Obj, Pred, Term, Var},
-        And, Exists, Forall, Fun, Iff, Neg, Obj, Pred, Var,
+        And, Exists, Forall, Fun, Iff, Neg, Obj, Pred, Var, Imply, Or
     };
 
     #[test]
@@ -131,4 +131,71 @@ mod tests {
         let expected_result = vec![c1, c2, c3];
         assert_eq!(to_clausal(formula), expected_result);
     }
+
+    #[test]
+    fn test_to_clausal_1() {
+        let formula = Forall! (
+            "w",
+            Or! (
+                Neg! (
+                    Exists! (
+                        "x",
+                        Exists! (
+                            "y",
+                            Forall! (
+                                "z",
+                                Imply! (
+                                    Pred! ("p", [Var! ("x"), Var! ("z")]),
+                                    Pred! ("q", [Var! ("y"), Var! ("z")])
+                                )
+                            )
+                        )
+                    )
+                ),
+                Exists! (
+                    "z",
+                    Pred! ("p", [Var! ("w"), Var! ("z")])
+                )
+            )
+        ); // forall w. ((~exists x. exists y. forall z. (p(x, z) -> q(y, z))) \/ exists z. p(w, z))
+        let p1 = Pred! ("p", [Var! ("x"), Fun! ("f1", [Var! ("w"), Var! ("x"), Var! ("y")])]);
+        let p2 = Pred! ("p", [Var! ("w"), Fun! ("f0", [Var! ("w")])]);
+        let p3 = Neg! (Pred! ("q", [Var! ("y0"), Fun! ("f1", [Var! ("w0"), Var! ("x0"), Var! ("y0")])]));
+        let p4 = Pred! ("p", [Var! ("w0"), Fun! ("f0", [Var! ("w0")])]);
+        let c1 = Clause::new(vec![p1, p2]);
+        let c2 = Clause::new(vec![p3, p4]);
+        let result = vec![c1, c2];
+        assert_eq!(result, to_clausal(formula));
+
+    }
+
+
+    #[test]
+    fn test_to_clausal_2() {
+        let formula = Forall! (
+            "y",
+            And! (
+                Pred! ("p", [Var! ("y")]),
+                Neg! (
+                    Forall! (
+                        "z",
+                        Imply! (
+                            Pred! ("r", [Var! ("z")]),
+                            Pred! ("q", [Var! ("y"), Var! ("z"), Var! ("w")])
+                        )
+                    )
+                )
+            )
+        );
+        let p1 = Pred! ("p", [Var! ("y")]);
+        let p2 = Pred! ("r", [Fun! ("f0", [Var! ("y0")])]);
+        let p3 = Neg! (Pred! ("q", [Var! ("y1"), Fun! ("f0", [Var! ("y1")]), Obj! ("o0")]));
+        let c1 = Clause::new(vec![p1]);
+        let c2 = Clause::new(vec![p2]);
+        let c3 = Clause::new(vec![p3]);
+        let result = vec![c1, c2, c3];
+        assert_eq!(result, to_clausal(formula));
+
+    }
+
 }

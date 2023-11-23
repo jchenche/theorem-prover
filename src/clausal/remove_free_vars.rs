@@ -73,7 +73,7 @@ mod tests {
     use super::*;
     use crate::{
         lang::{Fun, Obj, Pred, Term, Var},
-        And, Exists, Forall, Fun, Iff, Neg, Obj, Pred, Var,
+        And, Exists, Forall, Fun, Iff, Neg, Obj, Pred, Var, Imply
     };
 
     #[test]
@@ -87,5 +87,52 @@ mod tests {
         ); // forall x. (p(x,z) /\ exists y. q(y,w))
         let expected_result = Exists!("z", Exists!("w", formula.clone())); // exists z. (exists w. (forall x. (p(x,z) /\ exists y. q(y,w))))
         assert_eq!(remove_free_vars(formula), expected_result);
+    }
+
+    #[test]
+    fn test_remove_free_vars_1() {
+        let formula = Imply! (
+            Pred! ("p", [Var! ("x")]),
+            Imply! (
+                Exists! (
+                    "x", 
+                    Imply! (
+                        Pred! ("q", [Var! ("x")]),
+                        Pred! ("r", [Var! ("x"), Var! ("y")])
+                    )
+                ),
+                Pred! ("q", [Var! ("x")])
+            )
+        ); // p(x) -> (forall x. (q(x) -> r(x, y)) -> q(x))
+        let result_formula = Exists! (
+            "x",
+            Exists! (
+                "y", 
+                formula.clone()
+            )
+        );
+        assert_eq!(result_formula, remove_free_vars(formula));
+    }
+
+    
+    #[test]
+    fn test_remove_free_vars_2() {
+        let formula = Forall! (
+            "y",
+            And! (
+                Pred! ("p", [Var! ["y"]]),
+                Neg! (
+                    Forall! (
+                        "z",
+                        Imply! (
+                            Pred! ("r", [Var! ("z")]),
+                            Pred! ("q", [Var! ("y"), Var! ("z"), Var! ("w")])
+                        )
+                    )
+                )
+            )
+        ); // forall y. (p(y) /\ ~(forall z. (r(z) -> q(y, z, w))))
+        let result_formula = Exists! ("w", formula.clone());
+        assert_eq!(result_formula, remove_free_vars(formula));
     }
 }
