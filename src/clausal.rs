@@ -208,4 +208,35 @@ mod tests {
         let result = vec![c1, c2, c3];
         assert_eq!(result, to_clausal(formula));
     }
+
+    #[test]
+    fn test_to_clausal_3() {
+        let formula = Forall!(
+            "x",
+            Or!(
+                Neg!(
+                    Exists!(
+                        "y",
+                        And!(
+                            Pred!("p", [Var!("x"), Var!("y")]),
+                            Pred!("p", [Var!("x"), Var!("z")])
+                        )
+                    )
+                ),
+                Exists!(
+                    "y",
+                    Pred!("p", [Var!("x"), Var!("y")])
+                )
+            )
+        ); // forall x.(~(exists y.(p(x, y) /\ p(x, z))) \/ exists y.(p(x, y)))
+
+        let p1 = Neg!(Pred!("p", [Var!("x"), Var!("y")]));
+        let p2 = Neg!(Pred!("p", [Var!("x"), Obj!("o0")]));
+        let p3 = Pred!("p", [Var!("x"), Fun!("f0", [Var!("x")])]);
+        let c1 = Clause::new(vec![p1]);
+        let c2 = Clause::new(vec![p2]);
+        let c3 = Clause::new(vec![p3]);
+        let result = vec![c1, c2, c3];
+        assert_eq!(result, to_clausal(formula));
+    }
 }

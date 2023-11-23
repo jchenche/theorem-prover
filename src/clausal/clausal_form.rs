@@ -81,4 +81,53 @@ mod tests {
         let result = vec![c1, c2];
         assert_eq!(result, to_clausal_form(formula));
     }
+
+    #[test]
+    fn test_to_clausal_form_3() {
+        let formula = Forall!(
+            "z",
+            Forall!(
+                "x",
+                And!(
+                    And!(
+                        Or!(
+                            Or!(
+                                Neg!(Pred!("p", [Var!("z"), Obj!("a")])),
+                                Neg!(Pred!("p", [Var!("z"), Var!("x")]))
+                            ),
+                            Neg!(Pred!("p", [Var!("x"), Var!("z")]))
+                        ),
+                        Or!(
+                            Pred!("p", [Var!("z"), Obj!("a")]),
+                            Pred!("p", [Var!("z"), Fun!("f", [Var!("z")])])
+                        )
+                    ),
+                    Or!(
+                        Pred!("p", [Var!("z"), Obj!("a")]),
+                        Pred!("p", [Fun!("f", [Var!("z")]), Var!("z")])
+                    )
+                )
+            )
+        );
+        // forall z.(forall x.(
+        //     (~p(z, a) \/ ~p(z, x) \/ ~p(x, z))
+        //     /\ (p(z, a) \/ p(z, f(z)))
+        //     /\ (p(z, a) \/ p(f(z), z))
+        // ))
+
+        let p1 = Neg!(Pred!("p", [Var!("z"), Obj!("a")]));
+        let p2 = Neg!(Pred!("p", [Var!("z"), Var!("x")]));
+        let p3 = Neg!(Pred!("p", [Var!("x"), Var!("z")]));
+        let p4 = Pred!("p", [Var!("z0"), Obj!("a")]);
+        let p5 = Pred!("p", [Var!("z0"), Fun!("f", [Var!("z0")])]);
+        let p6 = Pred!("p", [Var!("z1"), Obj!("a")]);
+        let p7 = Pred!("p", [Fun!("f", [Var!("z1")]), Var!("z1")]);
+
+        let c1 = Clause::new(vec![p1, p2, p3]);
+        let c2 = Clause::new(vec![p4, p5]);
+        let c3 = Clause::new(vec![p6, p7]);
+
+        let result = vec![c1, c2, c3];
+        assert_eq!(result, to_clausal_form(formula));
+    }
 }
