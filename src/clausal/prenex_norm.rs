@@ -104,7 +104,7 @@ fn apply_demorgan(formula: Formula) -> Formula {
 fn rename_bound_vars(
     formula: Formula,
     env: &mut Environment,
-    seen_var: &mut HashSet<Var>,
+    seen_vars: &mut HashSet<Var>,
     used_vars: &mut HashSet<Var>,
 ) -> Formula {
     match formula {
@@ -113,58 +113,60 @@ fn rename_bound_vars(
             Box::new(
                 pred.get_args()
                     .iter()
-                    .map(|arg| rename_bound_vars_in_terms(arg, env, seen_var, used_vars))
+                    .map(|arg| rename_bound_vars_in_terms(arg, env, seen_vars, used_vars))
                     .collect(),
             ),
         )),
         Formula::True => Formula::True,
         Formula::False => Formula::False,
         Formula::And(left, right) => And!(
-            rename_bound_vars(*left, env, seen_var, used_vars),
-            rename_bound_vars(*right, env, seen_var, used_vars)
+            rename_bound_vars(*left, env, seen_vars, used_vars),
+            rename_bound_vars(*right, env, seen_vars, used_vars)
         ),
         Formula::Or(left, right) => Or!(
-            rename_bound_vars(*left, env, seen_var, used_vars),
-            rename_bound_vars(*right, env, seen_var, used_vars)
+            rename_bound_vars(*left, env, seen_vars, used_vars),
+            rename_bound_vars(*right, env, seen_vars, used_vars)
         ),
-        Formula::Neg(subformula) => Neg!(rename_bound_vars(*subformula, env, seen_var, used_vars)),
+        Formula::Neg(subformula) => Neg!(rename_bound_vars(*subformula, env, seen_vars, used_vars)),
         Formula::Imply(left, right) => Imply!(
-            rename_bound_vars(*left, env, seen_var, used_vars),
-            rename_bound_vars(*right, env, seen_var, used_vars)
+            rename_bound_vars(*left, env, seen_vars, used_vars),
+            rename_bound_vars(*right, env, seen_vars, used_vars)
         ),
         Formula::Iff(left, right) => Iff!(
-            rename_bound_vars(*left, env, seen_var, used_vars),
-            rename_bound_vars(*right, env, seen_var, used_vars)
+            rename_bound_vars(*left, env, seen_vars, used_vars),
+            rename_bound_vars(*right, env, seen_vars, used_vars)
         ),
         Formula::Forall(var, subformula) => {
-            if seen_var.contains(&var) {
+            if seen_vars.contains(&var) {
                 let new_var = find_new_var(&var, used_vars);
+                seen_vars.insert(new_var.clone());
                 used_vars.insert(new_var.clone());
                 env.push_scope();
                 env.add(var, Term::Var(new_var.clone()));
-                let subformula = rename_bound_vars(*subformula, env, seen_var, used_vars);
+                let subformula = rename_bound_vars(*subformula, env, seen_vars, used_vars);
                 env.pop_scope();
                 Formula::Forall(new_var, Box::new(subformula))
             } else {
                 Formula::Forall(
                     var,
-                    Box::new(rename_bound_vars(*subformula, env, seen_var, used_vars)),
+                    Box::new(rename_bound_vars(*subformula, env, seen_vars, used_vars)),
                 )
             }
         }
         Formula::Exists(var, subformula) => {
-            if seen_var.contains(&var) {
+            if seen_vars.contains(&var) {
                 let new_var = find_new_var(&var, used_vars);
+                seen_vars.insert(new_var.clone());
                 used_vars.insert(new_var.clone());
                 env.push_scope();
                 env.add(var, Term::Var(new_var.clone()));
-                let subformula = rename_bound_vars(*subformula, env, seen_var, used_vars);
+                let subformula = rename_bound_vars(*subformula, env, seen_vars, used_vars);
                 env.pop_scope();
                 Formula::Exists(new_var, Box::new(subformula))
             } else {
                 Formula::Exists(
                     var,
-                    Box::new(rename_bound_vars(*subformula, env, seen_var, used_vars)),
+                    Box::new(rename_bound_vars(*subformula, env, seen_vars, used_vars)),
                 )
             }
         }
@@ -185,7 +187,7 @@ fn find_new_var(var: &Var, used_vars: &mut HashSet<Var>) -> Var {
 fn rename_bound_vars_in_terms(
     term: &Term,
     env: &mut Environment,
-    seen_var: &mut HashSet<Var>,
+    seen_vars: &mut HashSet<Var>,
     used_vars: &mut HashSet<Var>,
 ) -> Term {
     match term {
@@ -202,7 +204,7 @@ fn rename_bound_vars_in_terms(
             Box::new(
                 f.get_args()
                     .iter()
-                    .map(|arg| rename_bound_vars_in_terms(arg, env, seen_var, used_vars))
+                    .map(|arg| rename_bound_vars_in_terms(arg, env, seen_vars, used_vars))
                     .collect(),
             ),
         )),
