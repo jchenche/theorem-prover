@@ -1,4 +1,4 @@
-~(exists y.(forall z.((p(z, y)) <-> (~(exists x.((p(z, x)) /\ (p(x, z))))))))
+p(x) \/ ~p(x)
 (forall x.(p(x))) -> p(x)
 (forall x.(p(x))) -> (exists x.(p(x)))
 (forall x.(p(x))) -> (forall y.(p(y)))
@@ -7,5 +7,7 @@
 (forall x.(p(x) -> q(x))) -> (forall x.(p(x)) -> forall x.(q(x)))
 (exists x.(p(x) /\ q(x))) -> (exists x.(p(x)) /\ exists x.(q(x)))
 (exists x.(p(x)) /\ forall x.(p(x) -> q(x))) -> exists x.(q(x))
+~(exists y.(forall z.((p(z, y)) <-> (~(exists x.((p(z, x)) /\ (p(x, z))))))))
+forall x.(forall y.(exists z.(p(x, y) /\ exists w.(q(z, w) \/ exists v.(forall u.(p(u, x) -> q(w, v) /\ (q(v, w) -> p(u, w))))))))
 (exists x.(p(x))) -> (forall x.(p(x)))
 (forall x.(forall y.((p(x) \/ ~q(x)) /\ (~p(y) /\ q(y)))))
