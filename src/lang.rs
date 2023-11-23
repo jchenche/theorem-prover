@@ -51,7 +51,7 @@ pub struct Fun {
 #[derive(Derivative)]
 #[derivative(Debug, PartialEq)]
 pub struct Clause {
-    #[derivative(PartialEq="ignore")] // ignore field id for comparison
+    #[derivative(PartialEq = "ignore")] // ignore field id for comparison
     id: usize,
     formulas: Vec<Formula>,
 }

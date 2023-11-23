@@ -1,4 +1,4 @@
-use crate::lang::{Clause, Formula, Term, Var};
+use crate::lang::{Clause, Formula};
 
 use super::Environment;
 
@@ -11,7 +11,7 @@ mod tests {
     use super::*;
     use crate::{
         lang::{Fun, Obj, Pred, Term, Var},
-        And, Exists, Forall, Fun, Iff, Neg, Obj, Or, Pred, Var,
+        And, Forall, Fun, Neg, Obj, Or, Pred, Var,
     };
 
     #[test]
@@ -125,6 +125,6 @@ mod tests {
         let c3 = Clause::new(vec![p6, p7]);
 
         let result = vec![c1, c2, c3];
-        assert_eq!(result, to_clausal_form(formula));
+        assert_eq!(to_clausal_form(formula), result);
     }
 }

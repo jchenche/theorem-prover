@@ -110,7 +110,7 @@ mod tests {
     };
 
     #[test]
-    fn test_to_clausal() {
+    fn test_to_clausal_complex() {
         let formula = Neg!(Neg!(Exists!(
             "y",
             Forall!(
@@ -214,19 +214,14 @@ mod tests {
         let formula = Forall!(
             "x",
             Or!(
-                Neg!(
-                    Exists!(
-                        "y",
-                        And!(
-                            Pred!("p", [Var!("x"), Var!("y")]),
-                            Pred!("p", [Var!("x"), Var!("z")])
-                        )
-                    )
-                ),
-                Exists!(
+                Neg!(Exists!(
                     "y",
-                    Pred!("p", [Var!("x"), Var!("y")])
-                )
+                    And!(
+                        Pred!("p", [Var!("x"), Var!("y")]),
+                        Pred!("p", [Var!("x"), Var!("z")])
+                    )
+                )),
+                Exists!("y", Pred!("p", [Var!("x"), Var!("y")]))
             )
         ); // forall x.(~(exists y.(p(x, y) /\ p(x, z))) \/ exists y.(p(x, y)))
 
@@ -237,6 +232,6 @@ mod tests {
         let c2 = Clause::new(vec![p2]);
         let c3 = Clause::new(vec![p3]);
         let result = vec![c1, c2, c3];
-        assert_eq!(result, to_clausal(formula));
+        assert_eq!(to_clausal(formula), result);
     }
 }

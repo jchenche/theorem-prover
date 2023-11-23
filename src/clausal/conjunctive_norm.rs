@@ -1,4 +1,4 @@
-use crate::lang::{Formula, Term, Var};
+use crate::lang::Formula;
 
 use super::Environment;
 
@@ -11,7 +11,7 @@ mod tests {
     use super::*;
     use crate::{
         lang::{Fun, Obj, Pred, Term, Var},
-        And, Exists, Forall, Fun, Iff, Neg, Obj, Or, Pred, Var,
+        And, Forall, Fun, Neg, Obj, Or, Pred, Var,
     };
 
     #[test]
@@ -142,6 +142,6 @@ mod tests {
         //     /\ (p(z, a) \/ p(f(z), z))
         // ))
 
-        assert_eq!(result_formula, to_cnf(formula));
+        assert_eq!(to_cnf(formula), result_formula);
     }
 }
