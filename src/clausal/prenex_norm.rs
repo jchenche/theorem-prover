@@ -1,17 +1,17 @@
 use std::collections::HashSet;
 
 use crate::{
-    lang::{Formula, Var},
+    lang::{Formula, Var, Pred, Term, Fun},
     And, Exists, Iff, Imply, Neg, Or,
 };
 
 use super::Environment;
 
-pub fn to_pnf(formula: Formula, used_vars: HashSet<Var>) -> Formula {
+pub fn to_pnf(formula: Formula, used_vars: &mut HashSet<Var>) -> Formula {
     let nnf = to_nnf(formula);
-    let seen_vars = HashSet::new();
-    let env = Environment::new();
-    let bound_vars_renamed = rename_bound_vars(nnf, env, seen_vars, used_vars);
+    let mut seen_vars = HashSet::new();
+    let mut env = Environment::new();
+    let bound_vars_renamed = rename_bound_vars(nnf, &mut env, &mut seen_vars, used_vars);
     todo!()
 }
 
@@ -103,21 +103,89 @@ fn apply_demorgan(formula: Formula) -> Formula {
 
 fn rename_bound_vars(
     formula: Formula,
-    env: Environment,
-    seen_var: HashSet<Var>,
-    used_vars: HashSet<Var>,
+    env: &mut Environment,
+    seen_var: &mut HashSet<Var>,
+    used_vars: &mut HashSet<Var>,
 ) -> Formula {
     match formula {
-        Formula::Pred(pred) => Formula::Pred(pred),
+        Formula::Pred(pred) => Formula::Pred(Pred::new(
+            pred.get_id(),
+            Box::new(
+                pred.get_args()
+                    .iter()
+                    .map(|arg| rename_bound_vars_in_terms(arg, env, seen_var, used_vars))
+                    .collect(),
+            ),
+        )),
         Formula::True => Formula::True,
         Formula::False => Formula::False,
-        Formula::And(left, right) => todo!(),
-        Formula::Or(left, right) => todo!(),
-        Formula::Neg(subformula) => todo!(),
-        Formula::Imply(left, right) => todo!(),
-        Formula::Iff(left, right) => todo!(),
-        Formula::Forall(var, subformula) => todo!(),
-        Formula::Exists(var, subformula) => todo!(),
+        Formula::And(left, right) => And!(rename_bound_vars(*left, env, seen_var, used_vars), rename_bound_vars(*right, env, seen_var, used_vars)),
+        Formula::Or(left, right) => Or!(rename_bound_vars(*left, env, seen_var, used_vars), rename_bound_vars(*right, env, seen_var, used_vars)),
+        Formula::Neg(subformula) => Neg!(rename_bound_vars(*subformula, env, seen_var, used_vars)),
+        Formula::Imply(left, right) => Imply!(rename_bound_vars(*left, env, seen_var, used_vars), rename_bound_vars(*right, env, seen_var, used_vars)),
+        Formula::Iff(left, right) => Iff!(rename_bound_vars(*left, env, seen_var, used_vars), rename_bound_vars(*right, env, seen_var, used_vars)),
+        Formula::Forall(var, subformula) => {
+            if seen_var.contains(&var) {
+                let new_var = find_new_var(&var, used_vars);
+                env.push_scope();
+                env.add(var, Term::Var(new_var.clone()));
+                let subformula = rename_bound_vars(*subformula, env, seen_var, used_vars);
+                env.pop_scope();
+                Formula::Forall(new_var, Box::new(subformula))
+            } else {
+                Formula::Forall(var, Box::new(rename_bound_vars(*subformula, env, seen_var, used_vars)))
+            }
+        },
+        Formula::Exists(var, subformula) => {
+            if seen_var.contains(&var) {
+                let new_var = find_new_var(&var, used_vars);
+                env.push_scope();
+                env.add(var, Term::Var(new_var.clone()));
+                let subformula = rename_bound_vars(*subformula, env, seen_var, used_vars);
+                env.pop_scope();
+                Formula::Exists(new_var, Box::new(subformula))
+            } else {
+                Formula::Exists(var, Box::new(rename_bound_vars(*subformula, env, seen_var, used_vars)))
+            }
+        },
+    }
+}
+
+fn find_new_var(var: &Var, used_vars: &mut HashSet<Var>) -> Var {
+    let mut suffix = 0;
+    loop {
+        let new_var = format!("{}{}", var, suffix.to_string());
+        if !used_vars.contains(&Var::new(&new_var)) {
+            return Var::new(&new_var);
+        }
+        suffix += 1;
+    }
+}
+
+fn rename_bound_vars_in_terms(
+    term: &Term,
+    env: &mut Environment,
+    seen_var: &mut HashSet<Var>,
+    used_vars: &mut HashSet<Var>,
+) -> Term {
+    match term {
+        Term::Obj(_) => term.clone(),
+        Term::Var(v) => {
+            if let Some(new_term) = env.find(v) {
+                new_term
+            } else {
+                term.clone()
+            }
+        },
+        Term::Fun(f) => Term::Fun(Fun::new(
+            f.get_id(),
+            Box::new(
+                f.get_args()
+                    .iter()
+                    .map(|arg| rename_bound_vars_in_terms(arg, env, seen_var, used_vars))
+                    .collect(),
+            ),
+        )),
     }
 }
 
@@ -204,8 +272,8 @@ mod tests {
                 )
             )
         ); // forall x . (forall y . (exists w. ((~p(x, y) \/ ~p(x, z)) \/ p(x,w))))
-        let used_vars = HashSet::from([Var::new("x"), Var::new("y"), Var::new("z")]);
-        assert_eq!(to_pnf(formula, used_vars), expected_result);
+        let mut used_vars = HashSet::from([Var::new("x"), Var::new("y"), Var::new("z")]);
+        assert_eq!(to_pnf(formula, &mut used_vars), expected_result);
     }
 
     #[test]
@@ -239,8 +307,8 @@ mod tests {
                 )
             )
         ); //exists w. forall y. exists z. (p(y) /\ r(z) /\ ~q(y, z, w))
-        let used_vars = HashSet::from([Var::new("w"), Var::new("y"), Var::new("z")]);
-        assert_eq!(result_formula, to_pnf(formula, used_vars));
+        let mut used_vars = HashSet::from([Var::new("w"), Var::new("y"), Var::new("z")]);
+        assert_eq!(result_formula, to_pnf(formula, &mut used_vars));
     }
 
     #[test]
@@ -286,13 +354,12 @@ mod tests {
                 )
             )
         ); //forall w. exists z0. forall x. forall y. exists z. ((p(x, z) /\ ~q(y, z)) \/ p(w, z0))
-        let used_vars = HashSet::from([
+        let mut used_vars = HashSet::from([
             Var::new("w"),
-            Var::new("z0"),
             Var::new("x"),
             Var::new("y"),
             Var::new("z"),
         ]);
-        assert_eq!(result_formula, to_pnf(formula, used_vars));
+        assert_eq!(result_formula, to_pnf(formula, &mut used_vars));
     }
 }

@@ -40,13 +40,13 @@ fn find_free_vars(formula: &Formula, env: &mut Environment, free_vars: &mut Vec<
         }
         Formula::Forall(var, subformula) => {
             env.push_scope();
-            env.add(var.clone());
+            env.add(var.clone(), Term::Var(var.clone()));
             find_free_vars(subformula, env, free_vars);
             env.pop_scope();
         }
         Formula::Exists(var, subformula) => {
             env.push_scope();
-            env.add(var.clone());
+            env.add(var.clone(), Term::Var(var.clone()));
             find_free_vars(subformula, env, free_vars);
             env.pop_scope();
         }

@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::lang::{Clause, Formula, Var};
+use crate::lang::{Clause, Formula, Var, Term};
 
 mod clausal_form;
 mod conjunctive_norm;
@@ -8,7 +8,7 @@ mod prenex_norm;
 mod remove_free_vars;
 mod skolem_norm;
 
-type Scope = HashMap<Var, Var>;
+type Scope = HashMap<Var, Term>;
 
 struct Environment {
     symbol_table: Vec<Scope>,
@@ -33,19 +33,19 @@ impl Environment {
         self.symbol_table.pop();
     }
 
-    pub fn add(&mut self, var: Var) {
+    pub fn add(&mut self, var: Var, term: Term) {
         let sym_tab = self.get_symbol_table();
         let sym_tab_len = sym_tab.len();
         sym_tab
             .get_mut(sym_tab_len - 1)
             .unwrap()
-            .insert(var.clone(), var);
+            .insert(var, term);
     }
 
-    pub fn find(&self, var: &Var) -> Option<Var> {
+    pub fn find(&self, var: &Var) -> Option<Term> {
         for scope in self.symbol_table.iter().rev() {
-            if scope.contains_key(var) {
-                return Some(var.clone());
+            if let Some(term) = scope.get(var) {
+                return Some(term.clone());
             }
         }
         None
@@ -54,8 +54,8 @@ impl Environment {
 
 pub fn to_clausal(formula: Formula) -> Vec<Clause> {
     let sentence = remove_free_vars::remove_free_vars(formula);
-    let used_vars = get_used_bound_vars(sentence.clone());
-    let pnf = prenex_norm::to_pnf(sentence, used_vars);
+    let mut used_vars = get_used_bound_vars(sentence.clone());
+    let pnf = prenex_norm::to_pnf(sentence, &mut used_vars);
     let skolem_norm = skolem_norm::skolemize(pnf);
     let cnf = conjunctive_norm::to_cnf(skolem_norm);
     let clausal_form = clausal_form::to_clausal_form(cnf);
