@@ -8,9 +8,11 @@ pub fn remove_free_vars(formula: Formula) -> Formula {
     let mut free_vars = vec![];
     let mut env = Environment::new();
     find_free_vars(&formula, &mut env, &mut free_vars);
-    remove_duplicate(free_vars).iter().rfold(formula, |acc, free_var| {
-        Formula::Exists(free_var.clone(), Box::new(acc))
-    })
+    remove_duplicate(free_vars)
+        .iter()
+        .rfold(formula, |acc, free_var| {
+            Formula::Exists(free_var.clone(), Box::new(acc))
+        })
 }
 
 fn find_free_vars(formula: &Formula, env: &mut Environment, free_vars: &mut Vec<Var>) {
@@ -86,8 +88,8 @@ fn remove_duplicate(vec: Vec<Var>) -> Vec<Var> {
 mod tests {
     use super::*;
     use crate::{
-        lang::{Fun, Obj, Pred, Term, Var},
-        And, Exists, Forall, Fun, Iff, Imply, Neg, Obj, Pred, Var,
+        lang::{Pred, Term, Var},
+        And, Exists, Forall, Imply, Neg, Pred, Var,
     };
 
     #[test]
