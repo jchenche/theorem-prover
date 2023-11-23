@@ -178,7 +178,7 @@ mod tests {
         let c1 = Clause::new(vec![p1, p2]);
         let c2 = Clause::new(vec![p3, p4]);
         let result = vec![c1, c2];
-        assert_eq!(result, to_clausal(formula));
+        assert_eq!(to_clausal(formula), result);
     }
 
     #[test]
@@ -206,7 +206,7 @@ mod tests {
         let c2 = Clause::new(vec![p2]);
         let c3 = Clause::new(vec![p3]);
         let result = vec![c1, c2, c3];
-        assert_eq!(result, to_clausal(formula));
+        assert_eq!(to_clausal(formula), result);
     }
 
     #[test]

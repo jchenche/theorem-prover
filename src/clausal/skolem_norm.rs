@@ -11,11 +11,8 @@ mod tests {
     use super::*;
     use crate::{
         lang::{Fun, Obj, Pred, Term, Var},
-        And, Exists, Forall, Fun, Iff, Neg, Obj, Or, Pred, Var,
+        And, Exists, Forall, Fun, Neg, Obj, Or, Pred, Var,
     };
-
-    #[test]
-    fn test_skolemize_simple() {}
 
     #[test]
     fn test_skolemize_1() {
@@ -31,7 +28,7 @@ mod tests {
                     )
                 )
             )
-        ); //exists w. forall y. exists z. (p(y) /\ r(z) /\ ~q(y, z, w))
+        ); // exists w. forall y. exists z. (p(y) /\ r(z) /\ ~q(y, z, w))
         let result_formula = Forall!(
             "y",
             And!(
@@ -42,7 +39,7 @@ mod tests {
                 Neg!(Pred!("q", [Var!("y"), Fun!("f0", [Var!("y")]), Obj!("o0")]))
             )
         ); // forall y. (p(y) /\ r(f0(y)) /\ ~q(y, f0(y), o0))
-        assert_eq!(result_formula, skolemize(formula));
+        assert_eq!(skolemize(formula), result_formula);
     }
 
     #[test]
@@ -68,7 +65,7 @@ mod tests {
                     )
                 )
             )
-        ); //forall w. exists z0. forall x. forall y. exists z. ((p(x, z) /\ ~q(y, z)) \/ p(w, z0))
+        ); // forall w. exists z0. forall x. forall y. exists z. ((p(x, z) /\ ~q(y, z)) \/ p(w, z0))
         let result_formula = Forall!(
             "w",
             Forall!(
@@ -91,6 +88,6 @@ mod tests {
                 )
             )
         ); // forall w. forall x. forall y. ((p(x, f1(w, x, y)) /\ ~q(y, f1(w, x, y))) \/ p(w, f0(w)))
-        assert_eq!(result_formula, skolemize(formula));
+        assert_eq!(skolemize(formula), result_formula);
     }
 }
