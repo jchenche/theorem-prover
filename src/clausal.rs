@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::lang::{Clause, Formula, Term, Var};
+use crate::lang::{Clause, Formula, Var};
 
 mod clausal_form;
 mod conjunctive_norm;
@@ -8,7 +8,7 @@ mod prenex_norm;
 mod remove_free_vars;
 mod skolem_norm;
 
-type Scope = HashSet<Var>;
+type Scope = HashMap<Var, Var>;
 
 struct Environment {
     symbol_table: Vec<Scope>,
@@ -26,7 +26,7 @@ impl Environment {
     }
 
     pub fn push_scope(&mut self) {
-        self.symbol_table.push(HashSet::new());
+        self.symbol_table.push(HashMap::new());
     }
 
     pub fn pop_scope(&mut self) {
@@ -36,12 +36,12 @@ impl Environment {
     pub fn add(&mut self, var: Var) {
         let sym_tab = self.get_symbol_table();
         let sym_tab_len = sym_tab.len();
-        sym_tab.get_mut(sym_tab_len - 1).unwrap().insert(var);
+        sym_tab.get_mut(sym_tab_len - 1).unwrap().insert(var.clone(), var);
     }
 
     pub fn find(&self, var: &Var) -> Option<Var> {
         for scope in self.symbol_table.iter().rev() {
-            if scope.contains(var) {
+            if scope.contains_key(var) {
                 return Some(var.clone());
             }
         }
@@ -51,41 +51,52 @@ impl Environment {
 
 pub fn to_clausal(formula: Formula) -> Vec<Clause> {
     let sentence = remove_free_vars::remove_free_vars(formula);
-    let pnf = prenex_norm::to_pnf(sentence);
+    let used_vars = get_used_bound_vars(sentence.clone());
+    let pnf = prenex_norm::to_pnf(sentence, used_vars);
     let skolem_norm = skolem_norm::skolemize(pnf);
     let cnf = conjunctive_norm::to_cnf(skolem_norm);
     let clausal_form = clausal_form::to_clausal_form(cnf);
     return clausal_form;
 }
 
-fn template(formula: Formula) {
-    match formula {
-        Formula::Pred(pred) => todo!(),
-        Formula::True => todo!(),
-        Formula::False => todo!(),
-        Formula::And(left, right) => todo!(),
-        Formula::Or(left, right) => todo!(),
-        Formula::Neg(subformula) => todo!(),
-        Formula::Imply(left, right) => todo!(),
-        Formula::Iff(left, right) => todo!(),
-        Formula::Forall(var, subformula) => todo!(),
-        Formula::Exists(var, subformula) => todo!(),
-    }
+fn get_used_bound_vars(formula: Formula) -> HashSet<Var> {
+    let mut used_vars = HashSet::new();
+    gather_used_bound_vars(formula, &mut used_vars);
+    return used_vars;
 }
 
-// example transformation
-fn and_to_or(formula: Formula) -> Formula {
+fn gather_used_bound_vars(formula: Formula, used_vars: &mut HashSet<Var>) {
     match formula {
-        Formula::Pred(pred) => Formula::Pred(pred),
-        Formula::True => Formula::True,
-        Formula::False => Formula::False,
-        Formula::And(l, r) => Formula::Or(Box::new(and_to_or(*l)), Box::new(and_to_or(*r))),
-        Formula::Or(l, r) => Formula::Or(Box::new(and_to_or(*l)), Box::new(and_to_or(*r))),
-        Formula::Neg(f) => Formula::Neg(Box::new(and_to_or(*f))),
-        Formula::Imply(l, r) => Formula::Imply(Box::new(and_to_or(*l)), Box::new(and_to_or(*r))),
-        Formula::Iff(l, r) => Formula::Iff(Box::new(and_to_or(*l)), Box::new(and_to_or(*r))),
-        Formula::Forall(v, f) => Formula::Forall(v, Box::new(and_to_or(*f))),
-        Formula::Exists(v, f) => Formula::Exists(v, Box::new(and_to_or(*f))),
+        Formula::Pred(_) => {}
+        Formula::True => {}
+        Formula::False => {}
+        Formula::And(left, right) => {
+            gather_used_bound_vars(*left, used_vars);
+            gather_used_bound_vars(*right, used_vars);
+        }
+        Formula::Or(left, right) => {
+            gather_used_bound_vars(*left, used_vars);
+            gather_used_bound_vars(*right, used_vars);
+        }
+        Formula::Neg(subformula) => {
+            gather_used_bound_vars(*subformula, used_vars);
+        }
+        Formula::Imply(left, right) => {
+            gather_used_bound_vars(*left, used_vars);
+            gather_used_bound_vars(*right, used_vars);
+        }
+        Formula::Iff(left, right) => {
+            gather_used_bound_vars(*left, used_vars);
+            gather_used_bound_vars(*right, used_vars);
+        }
+        Formula::Forall(var, subformula) => {
+            used_vars.insert(var);
+            gather_used_bound_vars(*subformula, used_vars);
+        }
+        Formula::Exists(var, subformula) => {
+            used_vars.insert(var);
+            gather_used_bound_vars(*subformula, used_vars);
+        }
     }
 }
 

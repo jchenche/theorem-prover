@@ -1,7 +1,14 @@
-use crate::{lang::Formula, And, Exists, Iff, Imply, Neg, Or};
+use std::collections::HashSet;
 
-pub fn to_pnf(formula: Formula) -> Formula {
+use crate::{lang::{Formula, Var}, And, Exists, Iff, Imply, Neg, Or};
+
+use super::Environment;
+
+pub fn to_pnf(formula: Formula, used_vars: HashSet<Var>) -> Formula {
     let nnf = to_nnf(formula);
+    let seen_vars = HashSet::new();
+    let env = Environment::new();
+    let bound_vars_renamed = rename_bound_vars(nnf, env, seen_vars, used_vars);
     todo!()
 }
 
@@ -91,6 +98,21 @@ fn apply_demorgan(formula: Formula) -> Formula {
     }
 }
 
+fn rename_bound_vars(formula: Formula, env: Environment, seen_var: HashSet<Var>, used_vars: HashSet<Var>) -> Formula {
+    match formula {
+        Formula::Pred(pred) => Formula::Pred(pred),
+        Formula::True => Formula::True,
+        Formula::False => Formula::False,
+        Formula::And(left, right) => todo!(),
+        Formula::Or(left, right) => todo!(),
+        Formula::Neg(subformula) => todo!(),
+        Formula::Imply(left, right) => todo!(),
+        Formula::Iff(left, right) => todo!(),
+        Formula::Forall(var, subformula) => todo!(),
+        Formula::Exists(var, subformula) => todo!(),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -98,40 +120,6 @@ mod tests {
         lang::{Fun, Obj, Pred, Term, Var},
         And, Exists, Forall, Fun, Iff, Neg, Obj, Or, Pred, Var,
     };
-
-    #[test]
-    fn test_to_pnf_simple() {
-        let formula = Forall!(
-            "x",
-            Or!(
-                Neg!(Exists!(
-                    "y",
-                    And!(
-                        Pred!("p", [Var!("x"), Var!("y")]),
-                        Pred!("p", [Var!("x"), Var!("z")])
-                    )
-                )),
-                Exists!("y", Pred!("p", [Var!("x"), Var!("y")]))
-            )
-        ); // forall x . (~(exists y . (p(x, y) /\ p(x, z))) \/ exists y . p(x, y))
-        let expected_result = Forall!(
-            "x",
-            Forall!(
-                "y",
-                Exists!(
-                    "w",
-                    Or!(
-                        Or!(
-                            Neg!(Pred!("p", [Var!("x"), Var!("y")])),
-                            Neg!(Pred!("p", [Var!("x"), Var!("z")]))
-                        ),
-                        Pred!("p", [Var!("x"), Var!("w")])
-                    )
-                )
-            )
-        ); // forall x . (forall y . (exists w. ((~p(x, y) \/ ~p(x, z)) \/ p(x,w))))
-        assert_eq!(to_pnf(formula), expected_result);
-    }
 
     #[test]
     fn test_to_nnf_no_quantifier() {
@@ -178,6 +166,41 @@ mod tests {
     }
 
     #[test]
+    fn test_to_pnf() {
+        let formula = Forall!(
+            "x",
+            Or!(
+                Neg!(Exists!(
+                    "y",
+                    And!(
+                        Pred!("p", [Var!("x"), Var!("y")]),
+                        Pred!("p", [Var!("x"), Var!("z")])
+                    )
+                )),
+                Exists!("y", Pred!("p", [Var!("x"), Var!("y")]))
+            )
+        ); // forall x . (~(exists y . (p(x, y) /\ p(x, z))) \/ exists y . p(x, y))
+        let expected_result = Forall!(
+            "x",
+            Forall!(
+                "y",
+                Exists!(
+                    "w",
+                    Or!(
+                        Or!(
+                            Neg!(Pred!("p", [Var!("x"), Var!("y")])),
+                            Neg!(Pred!("p", [Var!("x"), Var!("z")]))
+                        ),
+                        Pred!("p", [Var!("x"), Var!("w")])
+                    )
+                )
+            )
+        ); // forall x . (forall y . (exists w. ((~p(x, y) \/ ~p(x, z)) \/ p(x,w))))
+        let used_vars = HashSet::from([Var::new("x"), Var::new("y"), Var::new("z")]);
+        assert_eq!(to_pnf(formula, used_vars), expected_result);
+    }
+
+    #[test]
     fn test_to_pnf_1() {
         let formula = Exists! (
             "w",
@@ -215,7 +238,8 @@ mod tests {
                 )
             )
         ); //exists w. forall y. exists z. (p(y) /\ r(z) /\ ~q(y, z, w))
-        assert_eq!(result_formula, to_pnf(formula));
+        let used_vars = HashSet::from([Var::new("w"), Var::new("y"), Var::new("z")]);
+        assert_eq!(result_formula, to_pnf(formula, used_vars));
     } 
 
     #[test]
@@ -268,7 +292,7 @@ mod tests {
                 )
             )
         ); //forall w. exists z0. forall x. forall y. exists z. ((p(x, z) /\ ~q(y, z)) \/ p(w, z0))
-        assert_eq!(result_formula, to_pnf(formula));
+        let used_vars = HashSet::from([Var::new("w"), Var::new("z0"), Var::new("x"), Var::new("y"), Var::new("z")]);
+        assert_eq!(result_formula, to_pnf(formula, used_vars));
     }
-
 }
