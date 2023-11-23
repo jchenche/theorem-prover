@@ -176,4 +176,99 @@ mod tests {
         ); // forall x . ((forall y . (~p(x, y) \/ ~p(x, z))) \/ exists y . p(x, y))
         assert_eq!(to_nnf(formula), expected_result);
     }
+
+    #[test]
+    fn test_to_pnf_1() {
+        let formula = Exists! (
+            "w",
+            Forall! (
+                "y",
+                And! (
+                    Pred! ("p", [Var! ["y"]]),
+                    Neg! (
+                        Forall! (
+                            "z",
+                            Imply! (
+                                Pred! ("r", [Var! ("z")]),
+                                Pred! ("q", [Var! ("y"), Var! ("z"), Var! ("w")])
+                            )
+                        )
+                    )
+                )
+            )
+        ); //exists w. forall y. (p(y) /\ ~(forall z. (r(z) -> q(y, z, w))))
+        let result_formula = Exists! (
+            "w",
+            Forall! (
+                "y",
+                Exists! (
+                    "z",
+                    And! (
+                        And! (
+                            Pred! ("p", [Var! ("y")]),
+                            Pred! ("r", [Var! ("z")])
+                        ),
+                        Neg! (
+                            Pred! ("q", [Var! ("y"), Var! ("z"), Var! ("w")])
+                        )
+                    )
+                )
+            )
+        ); //exists w. forall y. exists z. (p(y) /\ r(z) /\ ~q(y, z, w))
+        assert_eq!(result_formula, to_pnf(formula));
+    } 
+
+    #[test]
+    fn test_to_pnf_2() {
+        let formula = Forall! (
+            "w",
+            Or! (
+                Neg! (
+                    Exists! (
+                       "x",
+                        Exists! (
+                            "y",
+                            Forall! (
+                                "z",
+                                Imply! (
+                                    Pred! ("p", [Var! ("x"), Var! ("z")]),
+                                    Pred! ("q", [Var! ("y"), Var! ("z")])
+                                )
+                            )
+                        )
+                    )
+                ),
+                Exists! (
+                    "z",
+                    Pred! ("p", [Var! ("w"), Var! ("z")])
+                )
+            )
+        ); // forall w. ((~exists x. exists y. forall z. (p(x, z) -> q(y, z))) \/ exists z. p(w, z))
+        let result_formula = Forall! (
+            "w",
+            Exists! (
+                "z0",
+                Forall! (
+                    "x",
+                    Forall! (
+                        "y",
+                        Exists! (
+                            "z",
+                            Or! (
+                                And! (
+                                    Pred! ("p", [Var! ("x"), Var! ("z")]),
+                                    Neg! (
+                                        Pred! ("q", [Var! ("y"), Var!("z")])
+                                    )
+                                ),
+                                Pred! ("p", [Var! ("w"), Var! ("z0")])
+                            )
+                        )
+                    )
+                )
+            )
+        ); //forall w. exists z0. forall x. forall y. exists z. ((p(x, z) /\ ~q(y, z)) \/ p(w, z0))
+        assert_eq!(result_formula, to_pnf(formula));
+    }
+
 }
