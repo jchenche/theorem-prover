@@ -423,7 +423,7 @@ mod tests {
                     ))
                 )
             )
-        ); //exists w. forall y. (p(y) /\ ~(forall z. (r(z) -> q(y, z, w))))
+        ); // exists w. forall y. (p(y) /\ ~(forall z. (r(z) -> q(y, z, w))))
         let result_formula = Exists!(
             "w",
             Forall!(
@@ -431,14 +431,17 @@ mod tests {
                 Exists!(
                     "z",
                     And!(
-                        And!(Pred!("p", [Var!("y")]), Pred!("r", [Var!("z")])),
-                        Neg!(Pred!("q", [Var!("y"), Var!("z"), Var!("w")]))
+                        Pred!("p", [Var!("y")]),
+                        And!(
+                            Pred!("r", [Var!("z")]),
+                            Neg!(Pred!("q", [Var!("y"), Var!("z"), Var!("w")]))
+                        )
                     )
                 )
             )
-        ); //exists w. forall y. exists z. (p(y) /\ r(z) /\ ~q(y, z, w))
+        ); // exists w. forall y. exists z. (p(y) /\ (r(z) /\ ~q(y, z, w)))
         let mut used_vars = HashSet::from([Var::new("w"), Var::new("y"), Var::new("z")]);
-        assert_eq!(result_formula, to_pnf(formula, &mut used_vars));
+        assert_eq!(to_pnf(formula, &mut used_vars), result_formula);
     }
 
     #[test]
@@ -483,9 +486,9 @@ mod tests {
                     )
                 )
             )
-        ); //forall w. exists z0. forall x. forall y. exists z. ((p(x, z) /\ ~q(y, z)) \/ p(w, z0))
+        ); // forall w. exists z0. forall x. forall y. exists z. ((p(x, z) /\ ~q(y, z)) \/ p(w, z0))
         let mut used_vars =
             HashSet::from([Var::new("w"), Var::new("x"), Var::new("y"), Var::new("z")]);
-        assert_eq!(result_formula, to_pnf(formula, &mut used_vars));
+        assert_eq!(to_pnf(formula, &mut used_vars), result_formula);
     }
 }
