@@ -10,6 +10,7 @@ mod skolem_norm;
 
 type Scope = HashMap<Var, Term>;
 
+#[derive(Debug)]
 struct Environment {
     symbol_table: Vec<Scope>,
 }

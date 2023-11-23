@@ -2,17 +2,24 @@ use std::collections::HashSet;
 
 use crate::{
     lang::{Formula, Fun, Pred, Term, Var},
-    And, Exists, Iff, Imply, Neg, Or,
+    And, Exists, Forall, Iff, Imply, Neg, Or,
 };
 
 use super::Environment;
+
+enum Quantifier {
+    AForall,
+    AnExists,
+}
 
 pub fn to_pnf(formula: Formula, used_vars: &mut HashSet<Var>) -> Formula {
     let nnf = to_nnf(formula);
     let mut seen_vars = HashSet::new();
     let mut env = Environment::new();
     let bound_vars_renamed = rename_bound_vars(nnf, &mut env, &mut seen_vars, used_vars);
-    todo!()
+    println!("RENAMEDDDDDDDDDD {}", bound_vars_renamed);
+    let pnf = move_quantifiers_to_front(bound_vars_renamed);
+    return pnf;
 }
 
 fn to_nnf(formula: Formula) -> Formula {
@@ -193,7 +200,9 @@ fn rename_bound_vars_in_terms(
     match term {
         Term::Obj(_) => term.clone(),
         Term::Var(v) => {
+            println!("ENVVVVVV {:?}", env);
             if let Some(new_term) = env.find(v) {
+                print!("NEWWWWWW TERM {:?}", new_term);
                 new_term
             } else {
                 term.clone()
@@ -208,6 +217,108 @@ fn rename_bound_vars_in_terms(
                     .collect(),
             ),
         )),
+    }
+}
+
+fn move_quantifiers_to_front(formula: Formula) -> Formula {
+    let inner_formula = find_inner_formula(formula.clone());
+    let mut inner_quantifiers = vec![];
+    let inner_formula_no_quantifiers = find_quantifiers(inner_formula, &mut inner_quantifiers);
+    let all_quantifiers_front =
+        insert_inner_quantifiers(formula, inner_quantifiers, inner_formula_no_quantifiers);
+    return all_quantifiers_front;
+}
+
+fn find_inner_formula(formula: Formula) -> Formula {
+    match formula {
+        Formula::Forall(_, subformula) | Formula::Exists(_, subformula) => match *subformula {
+            Formula::Forall(_, _) | Formula::Exists(_, _) => find_inner_formula(*subformula),
+            _ => *subformula,
+        },
+        _ => formula,
+    }
+}
+
+fn find_quantifiers(formula: Formula, inner_quantifiers: &mut Vec<(Var, Quantifier)>) -> Formula {
+    match formula {
+        Formula::Pred(pred) => Formula::Pred(pred),
+        Formula::True => Formula::True,
+        Formula::False => Formula::False,
+        Formula::And(left, right) => And!(
+            find_quantifiers(*left, inner_quantifiers),
+            find_quantifiers(*right, inner_quantifiers)
+        ),
+        Formula::Or(left, right) => Or!(
+            find_quantifiers(*left, inner_quantifiers),
+            find_quantifiers(*right, inner_quantifiers)
+        ),
+        Formula::Neg(subformula) => Neg!(find_quantifiers(*subformula, inner_quantifiers)),
+        Formula::Imply(left, right) => Imply!(
+            find_quantifiers(*left, inner_quantifiers),
+            find_quantifiers(*right, inner_quantifiers)
+        ),
+        Formula::Iff(left, right) => Iff!(
+            find_quantifiers(*left, inner_quantifiers),
+            find_quantifiers(*right, inner_quantifiers)
+        ),
+        Formula::Forall(var, subformula) => {
+            inner_quantifiers.push((var, Quantifier::AForall));
+            find_quantifiers(*subformula, inner_quantifiers)
+        }
+        Formula::Exists(var, subformula) => {
+            inner_quantifiers.push((var, Quantifier::AnExists));
+            find_quantifiers(*subformula, inner_quantifiers)
+        }
+    }
+}
+
+fn insert_inner_quantifiers(
+    formula: Formula,
+    inner_quantifiers: Vec<(Var, Quantifier)>,
+    inner_formula_no_quantifiers: Formula,
+) -> Formula {
+    match formula {
+        Formula::Forall(var, subformula) => Formula::Forall(
+            var,
+            Box::new(match *subformula {
+                Formula::Forall(_, _) | Formula::Exists(_, _) => insert_inner_quantifiers(
+                    *subformula,
+                    inner_quantifiers,
+                    inner_formula_no_quantifiers,
+                ),
+                _ => inner_quantifiers.into_iter().rfold(
+                    inner_formula_no_quantifiers,
+                    |acc, inner_quantifier| match inner_quantifier.1 {
+                        Quantifier::AForall => Formula::Forall(inner_quantifier.0, Box::new(acc)),
+                        Quantifier::AnExists => Formula::Exists(inner_quantifier.0, Box::new(acc)),
+                    },
+                ),
+            }),
+        ),
+        Formula::Exists(var, subformula) => Formula::Exists(
+            var,
+            Box::new(match *subformula {
+                Formula::Forall(_, _) | Formula::Exists(_, _) => insert_inner_quantifiers(
+                    *subformula,
+                    inner_quantifiers,
+                    inner_formula_no_quantifiers,
+                ),
+                _ => inner_quantifiers.into_iter().rfold(
+                    inner_formula_no_quantifiers,
+                    |acc, inner_quantifier| match inner_quantifier.1 {
+                        Quantifier::AForall => Formula::Forall(inner_quantifier.0, Box::new(acc)),
+                        Quantifier::AnExists => Formula::Exists(inner_quantifier.0, Box::new(acc)),
+                    },
+                ),
+            }),
+        ),
+        _ => inner_quantifiers.into_iter().rfold(
+            inner_formula_no_quantifiers,
+            |acc, inner_quantifier| match inner_quantifier.1 {
+                Quantifier::AForall => Formula::Forall(inner_quantifier.0, Box::new(acc)),
+                Quantifier::AnExists => Formula::Exists(inner_quantifier.0, Box::new(acc)),
+            },
+        ),
     }
 }
 
@@ -264,7 +375,7 @@ mod tests {
     }
 
     #[test]
-    fn test_to_pnf() {
+    fn test_to_pnf_complex() {
         let formula = Forall!(
             "x",
             Or!(
