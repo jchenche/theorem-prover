@@ -15,9 +15,6 @@ mod tests {
     };
 
     #[test]
-    fn test_to_clausal_form_simple() {}
-
-    #[test]
     fn test_to_clausal_form_1() {
         let formula = Forall!(
             "y",
@@ -36,7 +33,7 @@ mod tests {
         let c2 = Clause::new(vec![p2]);
         let c3 = Clause::new(vec![p3]);
         let result = vec![c1, c2, c3];
-        assert_eq!(result, to_clausal_form(formula));
+        assert_eq!(to_clausal_form(formula), result);
     }
 
     #[test]
@@ -79,6 +76,6 @@ mod tests {
         let c1 = Clause::new(vec![p1, p2]);
         let c2 = Clause::new(vec![p3, p4]);
         let result = vec![c1, c2];
-        assert_eq!(result, to_clausal_form(formula));
+        assert_eq!(to_clausal_form(formula), result);
     }
 }

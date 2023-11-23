@@ -15,9 +15,6 @@ mod tests {
     };
 
     #[test]
-    fn test_to_cnf_simple() {}
-
-    #[test]
     fn test_to_cnf_1() {
         let formula = Forall!(
             "x",
@@ -56,8 +53,8 @@ mod tests {
                     )
                 )
             )
-        ); // forall x. forall w. forall y. forall z. ((p(x)\/ p(w)) /\ (p(x) \/ p(y)) /\ (p(x) \/ p(z))
-        assert_eq!(result_formula, to_cnf(formula));
+        ); // forall x. forall w. forall y. forall z. ((p(x) \/ p(w)) /\ (p(x) \/ p(y)) /\ (p(x) \/ p(z))
+        assert_eq!(to_cnf(formula), result_formula);
     }
 
     #[test]
@@ -82,6 +79,6 @@ mod tests {
                 Or!(Pred!("q", [Var!("x")]), Pred!("r", [Var!("x")]))
             )
         ); // forall x. ((~p(x) \/ ~r(x)) /\ (~p(x) \/ r(x)) /\ (q(x) \/~r(x)) /\ (q(x) \/ r(x)))
-        assert_eq!(result_formula, to_cnf(formula));
+        assert_eq!(to_cnf(formula), result_formula);
     }
 }
