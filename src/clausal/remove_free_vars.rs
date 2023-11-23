@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::lang::{Formula, Term, Var};
 
 use super::Environment;
@@ -6,7 +8,7 @@ pub fn remove_free_vars(formula: Formula) -> Formula {
     let mut free_vars = vec![];
     let mut env = Environment::new();
     find_free_vars(&formula, &mut env, &mut free_vars);
-    free_vars.iter().rfold(formula, |acc, free_var| {
+    remove_duplicate(free_vars).iter().rfold(formula, |acc, free_var| {
         Formula::Exists(free_var.clone(), Box::new(acc))
     })
 }
@@ -68,6 +70,18 @@ fn find_free_vars_in_terms(term: &Term, env: &mut Environment, free_vars: &mut V
     }
 }
 
+fn remove_duplicate(vec: Vec<Var>) -> Vec<Var> {
+    let mut new_vec = vec![];
+    let mut set = HashSet::new();
+    for x in vec {
+        if !set.contains(&x) {
+            new_vec.push(x.clone());
+        }
+        set.insert(x);
+    }
+    new_vec
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -85,7 +99,7 @@ mod tests {
                 Exists!("y", Pred!("q", [Var!("y"), Var!("w")]))
             )
         ); // forall x. (p(x,z) /\ exists y. q(y,w))
-        let expected_result = Exists!("z", Exists!("w", formula.clone())); // exists z. (exists w. (forall x. (p(x,z) /\ exists y. q(y,w))))
+        let expected_result = Exists!("z", Exists!("w", formula.clone()));
         assert_eq!(remove_free_vars(formula), expected_result);
     }
 
@@ -102,7 +116,7 @@ mod tests {
             )
         ); // p(x) -> (forall x. (q(x) -> r(x, y)) -> q(x))
         let result_formula = Exists!("x", Exists!("y", formula.clone()));
-        assert_eq!(result_formula, remove_free_vars(formula));
+        assert_eq!(remove_free_vars(formula), result_formula);
     }
 
     #[test]
@@ -121,6 +135,6 @@ mod tests {
             )
         ); // forall y. (p(y) /\ ~(forall z. (r(z) -> q(y, z, w))))
         let result_formula = Exists!("w", formula.clone());
-        assert_eq!(result_formula, remove_free_vars(formula));
+        assert_eq!(remove_free_vars(formula), result_formula);
     }
 }
