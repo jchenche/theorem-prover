@@ -84,7 +84,7 @@ mod tests {
 
     #[test]
     fn test_to_cnf_3() {
-        let formula  = Forall!(
+        let formula = Forall!(
             "z",
             Forall!(
                 "x",
