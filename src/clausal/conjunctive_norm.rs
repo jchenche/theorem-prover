@@ -81,4 +81,67 @@ mod tests {
         ); // forall x. ((~p(x) \/ ~r(x)) /\ (~p(x) \/ r(x)) /\ (q(x) \/~r(x)) /\ (q(x) \/ r(x)))
         assert_eq!(to_cnf(formula), result_formula);
     }
+
+    #[test]
+    fn test_to_cnf_3() {
+        let formula = Forall!(
+            "z",
+            Forall!(
+                "x",
+                And!(
+                    Or!(
+                        Neg!(Pred!("p", [Var!("z"), Obj!("a")])),
+                        Or!(
+                            Neg!(Pred!("p", [Var!("z"), Var!("x")])),
+                            Neg!(Pred!("p", [Var!("x"), Var!("z")]))
+                        )
+                    ),
+                    Or!(
+                        Pred!("p", [Var!("z"), Obj!("a")]),
+                        And!(
+                            Pred!("p", [Var!("z"), Fun!("f", [Var!("z")])]),
+                            Pred!("p", [Fun!("f", [Var!("z")]), Var!("z")])
+                        )
+                    )
+                )
+            )
+        );
+        // forall z. forall x.((
+        //     (~p(z, a) \/ (~p(z, x) \/ ~p(x, z)))
+        //     /\ (p(z, a) \/ (p(z, f(z)), p(f(z), z)))
+        // ))
+
+        let result_formula = Forall!(
+            "z",
+            Forall!(
+                "x",
+                And!(
+                    And!(
+                        Or!(
+                            Or!(
+                                Neg!(Pred!("p", [Var!("z"), Obj!("a")])),
+                                Neg!(Pred!("p", [Var!("z"), Var!("x")]))
+                            ),
+                            Neg!(Pred!("p", [Var!("x"), Var!("z")]))
+                        ),
+                        Or!(
+                            Pred!("p", [Var!("z"), Obj!("a")]),
+                            Pred!("p", [Var!("z"), Fun!("f", [Var!("z")])])
+                        )
+                    ),
+                    Or!(
+                        Pred!("p", [Var!("z"), Obj!("a")]),
+                        Pred!("p", [Fun!("f", [Var!("z")]), Var!("z")])
+                    )
+                )
+            )
+        );
+        // forall z.(forall x.(
+        //     (~p(z, a) \/ ~p(z, x) \/ ~p(x, z))
+        //     /\ (p(z, a) \/ p(z, f(z)))
+        //     /\ (p(z, a) \/ p(f(z), z))
+        // ))
+
+        assert_eq!(result_formula, to_cnf(formula));
+    }
 }

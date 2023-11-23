@@ -193,13 +193,10 @@ mod tests {
         let c1 = Clause::new(vec![p1, p3]); // C1: {p(a, y), p(x, y)}
         let c2 = Clause::new(vec![p2]); // C2: {~p(x, y)}
 
-        let c3 = resolve_clauses(&c1, &c2);
-        assert_eq!(c3.len(), 2);
-        assert!(c3.get(0).unwrap().get_formulas().is_empty());
-        assert_eq!(
-            c3.get(1).unwrap().get_formulas(),
-            &vec![Pred!("p", [Obj!("a"), Var!("y")])]
-        );
+        let c3 = Clause::new(vec![]); // C3: {}
+        let c4 = Clause::new(vec![Pred!("p", [Obj!("a"), Var!("y")])]); // C4: {p(a, y)}
+
+        assert_eq!(vec![c3, c4], resolve_clauses(&c1, &c2));
     }
 
     #[test]

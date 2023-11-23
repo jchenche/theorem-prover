@@ -3,6 +3,8 @@ use std::{
     sync::atomic::{AtomicUsize, Ordering},
 };
 
+use derivative::Derivative;
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Formula {
     Pred(Pred),
@@ -46,8 +48,10 @@ pub struct Fun {
     args: Box<Vec<Term>>,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Derivative)]
+#[derivative(Debug, PartialEq)]
 pub struct Clause {
+    #[derivative(PartialEq="ignore")] // ignore field id for comparison
     id: usize,
     formulas: Vec<Formula>,
 }
