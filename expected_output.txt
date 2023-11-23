@@ -1,4 +1,4 @@
-~(exists y.(forall z.((p(z, y)) <-> (~(exists x.((p(z, x)) /\ (p(x, z)))))))) is valid.
+(p(x)) \/ (~(p(x))) is valid.
 (forall x.(p(x))) -> (p(x)) is valid.
 (forall x.(p(x))) -> (exists x.(p(x))) is valid.
 (forall x.(p(x))) -> (forall y.(p(y))) is valid.
@@ -7,5 +7,7 @@
 (forall x.((p(x)) -> (q(x)))) -> ((forall x.(p(x))) -> (forall x.(q(x)))) is valid.
 (exists x.((p(x)) /\ (q(x)))) -> ((exists x.(p(x))) /\ (exists x.(q(x)))) is valid.
 ((exists x.(p(x))) /\ (forall x.((p(x)) -> (q(x))))) -> (exists x.(q(x))) is valid.
+~(exists y.(forall z.((p(z, y)) <-> (~(exists x.((p(z, x)) /\ (p(x, z)))))))) is valid.
+forall x.(forall y.(exists z.((p(x, y)) /\ (exists w.((q(z, w)) \/ (exists v.(forall u.((p(u, x)) -> ((q(w, v)) /\ ((q(v, w)) -> (p(u, w)))))))))))) is valid.
 (exists x.(p(x))) -> (forall x.(p(x))) is invalid.
 forall x.(forall y.(((p(x)) \/ (~(q(x)))) /\ ((~(p(y))) /\ (q(y))))) may be valid or invalid. Since first order logic is undecidable, the program may run forever, so it can't tell us.
