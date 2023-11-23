@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use crate::{
-    lang::{Formula, Var, Pred, Term, Fun},
+    lang::{Formula, Fun, Pred, Term, Var},
     And, Exists, Iff, Imply, Neg, Or,
 };
 
@@ -119,11 +119,23 @@ fn rename_bound_vars(
         )),
         Formula::True => Formula::True,
         Formula::False => Formula::False,
-        Formula::And(left, right) => And!(rename_bound_vars(*left, env, seen_var, used_vars), rename_bound_vars(*right, env, seen_var, used_vars)),
-        Formula::Or(left, right) => Or!(rename_bound_vars(*left, env, seen_var, used_vars), rename_bound_vars(*right, env, seen_var, used_vars)),
+        Formula::And(left, right) => And!(
+            rename_bound_vars(*left, env, seen_var, used_vars),
+            rename_bound_vars(*right, env, seen_var, used_vars)
+        ),
+        Formula::Or(left, right) => Or!(
+            rename_bound_vars(*left, env, seen_var, used_vars),
+            rename_bound_vars(*right, env, seen_var, used_vars)
+        ),
         Formula::Neg(subformula) => Neg!(rename_bound_vars(*subformula, env, seen_var, used_vars)),
-        Formula::Imply(left, right) => Imply!(rename_bound_vars(*left, env, seen_var, used_vars), rename_bound_vars(*right, env, seen_var, used_vars)),
-        Formula::Iff(left, right) => Iff!(rename_bound_vars(*left, env, seen_var, used_vars), rename_bound_vars(*right, env, seen_var, used_vars)),
+        Formula::Imply(left, right) => Imply!(
+            rename_bound_vars(*left, env, seen_var, used_vars),
+            rename_bound_vars(*right, env, seen_var, used_vars)
+        ),
+        Formula::Iff(left, right) => Iff!(
+            rename_bound_vars(*left, env, seen_var, used_vars),
+            rename_bound_vars(*right, env, seen_var, used_vars)
+        ),
         Formula::Forall(var, subformula) => {
             if seen_var.contains(&var) {
                 let new_var = find_new_var(&var, used_vars);
@@ -133,9 +145,12 @@ fn rename_bound_vars(
                 env.pop_scope();
                 Formula::Forall(new_var, Box::new(subformula))
             } else {
-                Formula::Forall(var, Box::new(rename_bound_vars(*subformula, env, seen_var, used_vars)))
+                Formula::Forall(
+                    var,
+                    Box::new(rename_bound_vars(*subformula, env, seen_var, used_vars)),
+                )
             }
-        },
+        }
         Formula::Exists(var, subformula) => {
             if seen_var.contains(&var) {
                 let new_var = find_new_var(&var, used_vars);
@@ -145,9 +160,12 @@ fn rename_bound_vars(
                 env.pop_scope();
                 Formula::Exists(new_var, Box::new(subformula))
             } else {
-                Formula::Exists(var, Box::new(rename_bound_vars(*subformula, env, seen_var, used_vars)))
+                Formula::Exists(
+                    var,
+                    Box::new(rename_bound_vars(*subformula, env, seen_var, used_vars)),
+                )
             }
-        },
+        }
     }
 }
 
@@ -176,7 +194,7 @@ fn rename_bound_vars_in_terms(
             } else {
                 term.clone()
             }
-        },
+        }
         Term::Fun(f) => Term::Fun(Fun::new(
             f.get_id(),
             Box::new(
@@ -354,12 +372,8 @@ mod tests {
                 )
             )
         ); //forall w. exists z0. forall x. forall y. exists z. ((p(x, z) /\ ~q(y, z)) \/ p(w, z0))
-        let mut used_vars = HashSet::from([
-            Var::new("w"),
-            Var::new("x"),
-            Var::new("y"),
-            Var::new("z"),
-        ]);
+        let mut used_vars =
+            HashSet::from([Var::new("w"), Var::new("x"), Var::new("y"), Var::new("z")]);
         assert_eq!(result_formula, to_pnf(formula, &mut used_vars));
     }
 }

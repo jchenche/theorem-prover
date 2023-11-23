@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::lang::{Clause, Formula, Var, Term};
+use crate::lang::{Clause, Formula, Term, Var};
 
 mod clausal_form;
 mod conjunctive_norm;
@@ -36,10 +36,7 @@ impl Environment {
     pub fn add(&mut self, var: Var, term: Term) {
         let sym_tab = self.get_symbol_table();
         let sym_tab_len = sym_tab.len();
-        sym_tab
-            .get_mut(sym_tab_len - 1)
-            .unwrap()
-            .insert(var, term);
+        sym_tab.get_mut(sym_tab_len - 1).unwrap().insert(var, term);
     }
 
     pub fn find(&self, var: &Var) -> Option<Term> {
