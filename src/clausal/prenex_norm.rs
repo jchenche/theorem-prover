@@ -146,7 +146,6 @@ fn rename_bound_vars(
             if seen_vars.contains(&var) {
                 let new_var = find_new_var(&var, used_vars);
                 seen_vars.insert(new_var.clone());
-                used_vars.insert(new_var.clone());
                 env.push_scope();
                 env.add(var.clone(), Term::Var(new_var.clone()));
                 let subformula = rename_bound_vars(*subformula, env, seen_vars, used_vars);
@@ -163,7 +162,6 @@ fn rename_bound_vars(
             if seen_vars.contains(&var) {
                 let new_var = find_new_var(&var, used_vars);
                 seen_vars.insert(new_var.clone());
-                used_vars.insert(new_var.clone());
                 env.push_scope();
                 env.add(var.clone(), Term::Var(new_var.clone()));
                 let subformula = rename_bound_vars(*subformula, env, seen_vars, used_vars);
@@ -184,7 +182,9 @@ fn find_new_var(var: &Var, used_vars: &mut HashSet<Var>) -> Var {
     loop {
         let new_var = format!("{}{}", var, suffix.to_string());
         if !used_vars.contains(&Var::new(&new_var)) {
-            return Var::new(&new_var);
+            let new_var = Var::new(&new_var);
+            used_vars.insert(new_var.clone());
+            return new_var;
         }
         suffix += 1;
     }
