@@ -139,6 +139,7 @@ fn rename_bound_vars(
         Formula::Forall(var, subformula) => {
             if seen_var.contains(&var) {
                 let new_var = find_new_var(&var, used_vars);
+                used_vars.insert(new_var.clone());
                 env.push_scope();
                 env.add(var, Term::Var(new_var.clone()));
                 let subformula = rename_bound_vars(*subformula, env, seen_var, used_vars);
@@ -154,6 +155,7 @@ fn rename_bound_vars(
         Formula::Exists(var, subformula) => {
             if seen_var.contains(&var) {
                 let new_var = find_new_var(&var, used_vars);
+                used_vars.insert(new_var.clone());
                 env.push_scope();
                 env.add(var, Term::Var(new_var.clone()));
                 let subformula = rename_bound_vars(*subformula, env, seen_var, used_vars);
