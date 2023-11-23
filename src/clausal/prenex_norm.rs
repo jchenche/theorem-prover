@@ -17,7 +17,6 @@ pub fn to_pnf(formula: Formula, used_vars: &mut HashSet<Var>) -> Formula {
     let mut seen_vars = HashSet::new();
     let mut env = Environment::new();
     let bound_vars_renamed = rename_bound_vars(nnf, &mut env, &mut seen_vars, used_vars);
-    println!("RENAMEDDDDDDDDDD {}", bound_vars_renamed);
     let pnf = move_quantifiers_to_front(bound_vars_renamed);
     return pnf;
 }
@@ -149,15 +148,15 @@ fn rename_bound_vars(
                 seen_vars.insert(new_var.clone());
                 used_vars.insert(new_var.clone());
                 env.push_scope();
-                env.add(var, Term::Var(new_var.clone()));
+                env.add(var.clone(), Term::Var(new_var.clone()));
                 let subformula = rename_bound_vars(*subformula, env, seen_vars, used_vars);
                 env.pop_scope();
+                seen_vars.insert(var);
                 Formula::Forall(new_var, Box::new(subformula))
             } else {
-                Formula::Forall(
-                    var,
-                    Box::new(rename_bound_vars(*subformula, env, seen_vars, used_vars)),
-                )
+                let subformula = rename_bound_vars(*subformula, env, seen_vars, used_vars);
+                seen_vars.insert(var.clone());
+                Formula::Forall(var, Box::new(subformula))
             }
         }
         Formula::Exists(var, subformula) => {
@@ -166,15 +165,15 @@ fn rename_bound_vars(
                 seen_vars.insert(new_var.clone());
                 used_vars.insert(new_var.clone());
                 env.push_scope();
-                env.add(var, Term::Var(new_var.clone()));
+                env.add(var.clone(), Term::Var(new_var.clone()));
                 let subformula = rename_bound_vars(*subformula, env, seen_vars, used_vars);
                 env.pop_scope();
+                seen_vars.insert(var);
                 Formula::Exists(new_var, Box::new(subformula))
             } else {
-                Formula::Exists(
-                    var,
-                    Box::new(rename_bound_vars(*subformula, env, seen_vars, used_vars)),
-                )
+                let subformula = rename_bound_vars(*subformula, env, seen_vars, used_vars);
+                seen_vars.insert(var.clone());
+                Formula::Exists(var, Box::new(subformula))
             }
         }
     }
@@ -200,9 +199,7 @@ fn rename_bound_vars_in_terms(
     match term {
         Term::Obj(_) => term.clone(),
         Term::Var(v) => {
-            println!("ENVVVVVV {:?}", env);
             if let Some(new_term) = env.find(v) {
-                print!("NEWWWWWW TERM {:?}", new_term);
                 new_term
             } else {
                 term.clone()
@@ -394,17 +391,17 @@ mod tests {
             Forall!(
                 "y",
                 Exists!(
-                    "w",
+                    "y0",
                     Or!(
                         Or!(
                             Neg!(Pred!("p", [Var!("x"), Var!("y")])),
                             Neg!(Pred!("p", [Var!("x"), Var!("z")]))
                         ),
-                        Pred!("p", [Var!("x"), Var!("w")])
+                        Pred!("p", [Var!("x"), Var!("y0")])
                     )
                 )
             )
-        ); // forall x . (forall y . (exists w. ((~p(x, y) \/ ~p(x, z)) \/ p(x,w))))
+        ); // forall x . (forall y . (exists y0. ((~p(x, y) \/ ~p(x, z)) \/ p(x,y0))))
         let mut used_vars = HashSet::from([Var::new("x"), Var::new("y"), Var::new("z")]);
         assert_eq!(to_pnf(formula, &mut used_vars), expected_result);
     }
