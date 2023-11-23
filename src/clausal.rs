@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use crate::lang::{Clause, Formula, Term, Var};
 
-mod clausal_form;
+mod clauses_derivation;
 mod conjunctive_norm;
 mod prenex_norm;
 mod remove_free_vars;
@@ -56,7 +56,7 @@ pub fn to_clausal(formula: Formula) -> Vec<Clause> {
     let pnf = prenex_norm::to_pnf(sentence, &mut used_vars);
     let skolem_norm = skolem_norm::skolemize(pnf);
     let cnf = conjunctive_norm::to_cnf(skolem_norm);
-    let clausal_form = clausal_form::to_clausal_form(cnf);
+    let clausal_form = clauses_derivation::derive_clauses(cnf);
     return clausal_form;
 }
 

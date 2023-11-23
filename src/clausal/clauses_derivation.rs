@@ -2,7 +2,7 @@ use crate::lang::{Clause, Formula};
 
 use super::Environment;
 
-pub fn to_clausal_form(formula: Formula) -> Vec<Clause> {
+pub fn derive_clauses(formula: Formula) -> Vec<Clause> {
     todo!()
 }
 
@@ -33,7 +33,7 @@ mod tests {
         let c2 = Clause::new(vec![p2]);
         let c3 = Clause::new(vec![p3]);
         let result = vec![c1, c2, c3];
-        assert_eq!(to_clausal_form(formula), result);
+        assert_eq!(derive_clauses(formula), result);
     }
 
     #[test]
@@ -76,7 +76,7 @@ mod tests {
         let c1 = Clause::new(vec![p1, p2]);
         let c2 = Clause::new(vec![p3, p4]);
         let result = vec![c1, c2];
-        assert_eq!(to_clausal_form(formula), result);
+        assert_eq!(derive_clauses(formula), result);
     }
 
     #[test]
@@ -125,6 +125,6 @@ mod tests {
         let c3 = Clause::new(vec![p6, p7]);
 
         let result = vec![c1, c2, c3];
-        assert_eq!(to_clausal_form(formula), result);
+        assert_eq!(derive_clauses(formula), result);
     }
 }
