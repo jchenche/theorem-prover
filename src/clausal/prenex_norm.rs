@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use crate::{
     lang::{Formula, Fun, Pred, Term, Var},
-    And, Exists, Forall, Iff, Imply, Neg, Or,
+    And, Iff, Imply, Neg, Or,
 };
 
 use super::Environment;
@@ -323,8 +323,8 @@ fn insert_inner_quantifiers(
 mod tests {
     use super::*;
     use crate::{
-        lang::{Fun, Obj, Pred, Term, Var},
-        And, Exists, Forall, Fun, Iff, Neg, Obj, Or, Pred, Var,
+        lang::{Obj, Pred, Term, Var},
+        And, Exists, Forall, Neg, Obj, Or, Pred, Var,
     };
 
     #[test]
@@ -369,6 +369,20 @@ mod tests {
             )
         ); // forall x . ((forall y . (~p(x, y) \/ ~p(x, z))) \/ exists y . p(x, y))
         assert_eq!(to_nnf(formula), expected_result);
+    }
+
+    #[test]
+    fn test_to_pnf_simple() {
+        let formula = Imply!(
+            Pred!("p", [Obj!("a")]),
+            Forall!("x", Pred!("q", [Var!("x")]))
+        ); // p(a) -> forall x. q(x)
+        let expected_result = Forall!(
+            "x",
+            Or!(Neg!(Pred!("p", [Obj!("a")])), Pred!("q", [Var!("x")]))
+        ); // forall x. (~p(a) \/ q(x))
+        let mut used_vars = HashSet::from([Var::new("x")]);
+        assert_eq!(to_pnf(formula, &mut used_vars), expected_result);
     }
 
     #[test]
