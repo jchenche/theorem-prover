@@ -1,9 +1,38 @@
-use crate::lang::Formula;
-
-use super::Environment;
+use crate::{lang::Formula, And, Neg, Or};
 
 pub fn to_cnf(formula: Formula) -> Formula {
-    todo!()
+    let nnf = super::prenex_norm::to_nnf(formula);
+    let cnf = dist_or_over_and(nnf);
+    return cnf;
+}
+
+fn dist_or_over_and(formula: Formula) -> Formula {
+    match formula {
+        Formula::Pred(pred) => Formula::Pred(pred),
+        Formula::True => Formula::True,
+        Formula::False => Formula::False,
+        Formula::And(left, right) => And!(dist_or_over_and(*left), dist_or_over_and(*right)),
+        Formula::Or(left, right) => match (dist_or_over_and(*left), dist_or_over_and(*right)) {
+            (Formula::And(subleft, subright), right) => And!(
+                dist_or_over_and(Or!(*subleft, right.clone())),
+                dist_or_over_and(Or!(*subright, right))
+            ),
+            (left, Formula::And(subleft, subright)) => And!(
+                dist_or_over_and(Or!(left.clone(), *subleft)),
+                dist_or_over_and(Or!(left, *subright))
+            ),
+            (left, right) => Or!(left, right),
+        },
+        Formula::Neg(subformula) => Neg!(dist_or_over_and(*subformula)),
+        Formula::Imply(_, _) => unreachable!("After conversion to NNF, there shouldn't be ->"),
+        Formula::Iff(_, _) => unreachable!("After conversion to NNF, there shouldn't be <->"),
+        Formula::Forall(var, subformula) => {
+            Formula::Forall(var, Box::new(dist_or_over_and(*subformula)))
+        }
+        Formula::Exists(var, subformula) => {
+            Formula::Exists(var, Box::new(dist_or_over_and(*subformula)))
+        }
+    }
 }
 
 #[cfg(test)]

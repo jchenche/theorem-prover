@@ -21,7 +21,7 @@ pub fn to_pnf(formula: Formula, used_vars: &mut HashSet<Var>) -> Formula {
     return pnf;
 }
 
-fn to_nnf(formula: Formula) -> Formula {
+pub fn to_nnf(formula: Formula) -> Formula {
     let no_imply = eliminate_imply(formula);
     let no_iff = eliminate_iff(no_imply);
     let demorganed = apply_demorgan(no_iff);
