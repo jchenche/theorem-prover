@@ -8,9 +8,21 @@ use crate::{
 pub fn derive_clauses(formula: Formula) -> Vec<Clause> {
     let mut used_vars = super::get_used_bound_vars(formula.clone());
     let no_quantifiers = drop_universal_quantifiers(formula);
-    let clauses = formula_to_clauses(no_quantifiers);
-    let clauses_renamed = rename_vars(clauses, &mut used_vars);
-    return clauses_renamed;
+    let mut clauses = vec![];
+    gather_clauses(no_quantifiers, &mut clauses);
+    let clauses = clauses.into_iter().filter(|clause| !clause.is_empty()).collect();
+
+    for c in &clauses {
+        for f in c {
+            print!("{f}")
+        }
+        println!()
+    }
+
+    rename_vars(clauses, &mut used_vars);
+    // println!("{:?}", clauses_renamed);
+    // return clauses_renamed;
+    todo!()
 }
 
 fn drop_universal_quantifiers(formula: Formula) -> Formula {
@@ -42,11 +54,35 @@ fn drop_universal_quantifiers(formula: Formula) -> Formula {
     }
 }
 
-fn formula_to_clauses(formula: Formula) -> Vec<Clause> {
-    todo!()
+fn gather_clauses(formula: Formula, clauses: &mut Vec<Vec<Formula>>) {
+    match formula {
+        Formula::Pred(pred) => put_to_clause(Formula::Pred(pred), clauses),
+        Formula::True => put_to_clause(Formula::True, clauses),
+        Formula::False => put_to_clause(Formula::False, clauses),
+        Formula::And(left, right) => {
+            clauses.push(vec![]);
+            gather_clauses(*left, clauses);
+            clauses.push(vec![]);
+            gather_clauses(*right, clauses);
+        }
+        Formula::Or(left, right) => {
+            gather_clauses(*left, clauses);
+            gather_clauses(*right, clauses);
+        },
+        Formula::Neg(subformula) => put_to_clause(Formula::Neg(subformula), clauses),
+        Formula::Imply(_, _) => unreachable!("Shouldn't have any -> after CNF conversion"),
+        Formula::Iff(_, _) => unreachable!("Shouldn't have any <-> after CNF conversion"),
+        Formula::Forall(_, _) => unreachable!("Shouldn't have any quantifiers (forall) after dropping them"),
+        Formula::Exists(_, _) => unreachable!("Shouldn't have any quantifiers (exists) after dropping them"),
+    }
 }
 
-fn rename_vars(clauses: Vec<Clause>, used_vars: &mut HashSet<String>) -> Vec<Clause> {
+fn put_to_clause(formula: Formula, clauses: &mut Vec<Vec<Formula>>) {
+    let last_clause_idx = clauses.len() - 1;
+    clauses.get_mut(last_clause_idx).unwrap().push(formula);
+}
+
+fn rename_vars(clauses: Vec<Vec<Formula>>, used_vars: &mut HashSet<String>) {
     todo!()
 }
 
@@ -70,9 +106,9 @@ mod tests {
                 Neg!(Pred!("q", [Var!("y"), Fun!("f", [Var!("y")]), Obj!("c")]))
             )
         ); // forall y (p(y) /\ r(f(y)) /\ ~q(y, f(y), c)
-        let p1 = Pred!("p", [Var!("y")]);
-        let p2 = Pred!("r", [Fun!("f", [Var!("y0")])]);
-        let p3 = Neg!(Pred!("q", [Var!("y1"), Fun!("f", [Var!("y1")]), Obj!("c")]));
+        let p1 = Pred!("p", [Var!("y0")]);
+        let p2 = Pred!("r", [Fun!("f", [Var!("y1")])]);
+        let p3 = Neg!(Pred!("q", [Var!("y2"), Fun!("f", [Var!("y2")]), Obj!("c")]));
         let c1 = Clause::new(vec![p1]);
         let c2 = Clause::new(vec![p2]);
         let c3 = Clause::new(vec![p3]);
