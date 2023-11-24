@@ -39,6 +39,7 @@ fn main() {
             None => output += " may be valid or invalid. Since first order logic is undecidable, the program may run forever, so it can't tell us.",
         }
     }
+    println!("{output}");
 
     // write the output string to file for comparison
     let mut file = OpenOptions::new()
