@@ -8,8 +8,8 @@ use crate::{
 pub fn derive_clauses(formula: Formula) -> Vec<Clause> {
     let mut used_vars = super::get_used_bound_vars(formula.clone());
     let no_quantifiers = drop_universal_quantifiers(formula);
-    let clauses = formula_to_clauses(no_quantifiers, &mut used_vars);
-    let clauses_renamed = rename_vars(clauses);
+    let clauses = formula_to_clauses(no_quantifiers);
+    let clauses_renamed = rename_vars(clauses, &mut used_vars);
     return clauses_renamed;
 }
 
@@ -42,11 +42,11 @@ fn drop_universal_quantifiers(formula: Formula) -> Formula {
     }
 }
 
-fn formula_to_clauses(formula: Formula, used_vars: &mut HashSet<String>) -> Vec<Clause> {
+fn formula_to_clauses(formula: Formula) -> Vec<Clause> {
     todo!()
 }
 
-fn rename_vars(clauses: Vec<Clause>) -> Vec<Clause> {
+fn rename_vars(clauses: Vec<Clause>, used_vars: &mut HashSet<String>) -> Vec<Clause> {
     todo!()
 }
 
