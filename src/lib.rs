@@ -1,4 +1,5 @@
 use lang::Formula;
+use log::trace;
 
 mod clausal;
 pub mod lang;
@@ -7,6 +8,7 @@ mod unification;
 
 pub fn is_valid(formula: Formula, limit_in_seconds: u64) -> Option<bool> {
     validate_formula(&formula);
+    trace!("Negating {formula}");
     let negated = Formula::Neg(Box::new(formula));
     let clausal = clausal::to_clausal(negated);
     resolution::refute_resolution(clausal, limit_in_seconds)

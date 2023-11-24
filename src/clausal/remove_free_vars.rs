@@ -1,10 +1,13 @@
 use std::collections::HashSet;
 
+use log::trace;
+
 use crate::lang::{Formula, Term, Var};
 
 use super::Environment;
 
 pub fn remove_free_vars(formula: Formula) -> Formula {
+    trace!("Removing free variables from {formula}");
     let mut free_vars = vec![];
     let mut env = Environment::new();
     find_free_vars(&formula, &mut env, &mut free_vars);

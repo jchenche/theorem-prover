@@ -1,5 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
+use log::trace;
+
 use crate::lang::{Clause, Formula, Term, Var};
 
 mod clauses_derivation;
@@ -54,6 +56,7 @@ impl Environment {
 }
 
 pub fn to_clausal(formula: Formula) -> Vec<Clause> {
+    trace!("Converting {formula} to clausal form");
     let sentence = remove_free_vars::remove_free_vars(formula);
     let pnf = prenex_norm::to_pnf(sentence);
     let skolem_norm = skolem_norm::skolemize(pnf);

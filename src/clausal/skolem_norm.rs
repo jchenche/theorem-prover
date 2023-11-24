@@ -1,5 +1,7 @@
 use std::collections::HashSet;
 
+use log::trace;
+
 use crate::{
     lang::{Formula, Fun, Obj, Pred, Term, Var},
     And, Iff, Imply, Neg, Or,
@@ -8,6 +10,7 @@ use crate::{
 use super::Environment;
 
 pub fn skolemize(formula: Formula) -> Formula {
+    trace!("Skolemizing {formula}");
     let mut used_funcs = HashSet::new();
     let mut used_objs = HashSet::new();
     gather_funcs_and_objs(formula.clone(), &mut used_funcs, &mut used_objs);

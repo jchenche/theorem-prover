@@ -1,9 +1,14 @@
+use log::debug;
+
 use crate::lang::{Formula, Fun, Pred, Term, Var};
 use std::collections::HashMap;
 
 type Unifier = HashMap<Var, Term>;
 
 pub fn most_general_unifier(formulas: Vec<&Formula>) -> Option<Unifier> {
+    debug!("Attempting to unify the following {} formulas", formulas.len());
+    formulas.iter().for_each(|formula| debug!("{formula}"));
+
     let mut predicates = vec![];
     for formula in formulas {
         match formula {

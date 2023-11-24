@@ -1,5 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
+use log::trace;
+
 use crate::{
     lang::{Clause, Formula, Fun, Pred, Term, Var},
     And, Iff, Imply, Neg, Or, Var,
@@ -8,6 +10,7 @@ use crate::{
 type VarNameMap = HashMap<String, String>;
 
 pub fn derive_clauses(formula: Formula) -> Vec<Clause> {
+    trace!("Deriving clauses from {formula}");
     let mut used_vars = super::get_used_bound_vars(formula.clone());
     let mut quantifiers = HashMap::new();
     let mut clauses = vec![vec![]];

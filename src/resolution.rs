@@ -1,4 +1,4 @@
-use log::debug;
+use log::{debug, trace};
 
 use crate::{
     lang::{Clause, Formula},
@@ -10,6 +10,9 @@ use std::{
 };
 
 pub fn refute_resolution(mut clauses: Vec<Clause>, limit_in_seconds: u64) -> Option<bool> {
+    trace!("Attempting resolution refutation starting with the following {} clauses:", clauses.len());
+    clauses.iter().for_each(|clause| trace!("{clause}"));
+
     let mut counter = 0;
     let mut resolved = Vec::new();
     let start = Instant::now();

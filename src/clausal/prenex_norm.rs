@@ -1,5 +1,7 @@
 use std::collections::HashSet;
 
+use log::trace;
+
 use crate::{
     lang::{Formula, Fun, Pred, Term, Var},
     And, Iff, Imply, Neg, Or,
@@ -13,6 +15,7 @@ enum Quantifier {
 }
 
 pub fn to_pnf(formula: Formula) -> Formula {
+    trace!("Converting {formula} to PNF");
     let mut used_vars = super::get_used_bound_vars(formula.clone());
     let nnf = to_nnf(formula);
     let mut seen_vars = HashSet::new();

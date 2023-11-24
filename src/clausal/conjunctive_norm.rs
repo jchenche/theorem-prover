@@ -1,6 +1,9 @@
+use log::trace;
+
 use crate::{lang::Formula, And, Neg, Or};
 
 pub fn to_cnf(formula: Formula) -> Formula {
+    trace!("Converting {formula} to CNF");
     let nnf = super::prenex_norm::to_nnf(formula);
     let cnf = dist_or_over_and(nnf);
     return cnf;
