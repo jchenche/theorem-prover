@@ -10,7 +10,10 @@ use std::{
 };
 
 pub fn refute_resolution(mut clauses: Vec<Clause>, limit_in_seconds: u64) -> Option<bool> {
-    trace!("Attempting resolution refutation starting with the following {} clauses:", clauses.len());
+    trace!(
+        "Attempting resolution refutation starting with the following {} clauses:",
+        clauses.len()
+    );
     clauses.iter().for_each(|clause| trace!("{clause}"));
 
     let mut counter = 0;

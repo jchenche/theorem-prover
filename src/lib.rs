@@ -58,18 +58,16 @@ mod tests {
 
     #[test]
     fn test_unknown_formula() {
-        let formula = Neg!(
+        let formula = Neg!(Forall!(
+            "x",
             Forall!(
-                "x",
-                Forall!(
-                    "y",
-                    And!(
-                        Or!(Pred!("p", [Var!("x")]), Neg!(Pred!("q", [Var!("x")]))),
-                        Or!(Neg!(Pred!("p", [Var!("y")])), Pred!("q", [Var!("y")]))
-                    )
+                "y",
+                And!(
+                    Or!(Pred!("p", [Var!("x")]), Neg!(Pred!("q", [Var!("x")]))),
+                    Or!(Neg!(Pred!("p", [Var!("y")])), Pred!("q", [Var!("y")]))
                 )
             )
-        ); // F: ~(forall x.(forall y.((p(x) \/ ~q(x)) /\ (~p(y) /\ q(y)))))
+        )); // F: ~(forall x.(forall y.((p(x) \/ ~q(x)) /\ (~p(y) /\ q(y)))))
         assert!(is_valid(formula, 5).is_none());
     }
 }
