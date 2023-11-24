@@ -145,7 +145,7 @@ fn rename_bound_vars(
         ),
         Formula::Forall(var, subformula) => {
             if seen_vars.contains(&var) {
-                let new_var = find_new_var(&var, used_vars);
+                let new_var = super::find_new_var(&var, used_vars);
                 seen_vars.insert(new_var.clone());
                 env.push_scope();
                 env.add(var.clone(), Term::Var(new_var.clone()));
@@ -161,7 +161,7 @@ fn rename_bound_vars(
         }
         Formula::Exists(var, subformula) => {
             if seen_vars.contains(&var) {
-                let new_var = find_new_var(&var, used_vars);
+                let new_var = super::find_new_var(&var, used_vars);
                 seen_vars.insert(new_var.clone());
                 env.push_scope();
                 env.add(var.clone(), Term::Var(new_var.clone()));
@@ -175,18 +175,6 @@ fn rename_bound_vars(
                 Formula::Exists(var, Box::new(subformula))
             }
         }
-    }
-}
-
-fn find_new_var(var: &Var, used_vars: &mut HashSet<String>) -> Var {
-    let mut suffix = 0;
-    loop {
-        let new_var = format!("{}{}", var, suffix.to_string());
-        if !used_vars.contains(&new_var) {
-            used_vars.insert(new_var.clone());
-            return Var::new(&new_var);
-        }
-        suffix += 1;
     }
 }
 

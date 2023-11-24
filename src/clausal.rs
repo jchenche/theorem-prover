@@ -100,6 +100,18 @@ fn gather_used_bound_vars(formula: Formula, used_vars: &mut HashSet<String>) {
     }
 }
 
+fn find_new_var(var: &Var, used_vars: &mut HashSet<String>) -> Var {
+    let mut suffix = 0;
+    loop {
+        let new_var = format!("{}{}", var, suffix.to_string());
+        if !used_vars.contains(&new_var) {
+            used_vars.insert(new_var.clone());
+            return Var::new(&new_var);
+        }
+        suffix += 1;
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
