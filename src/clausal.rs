@@ -183,12 +183,12 @@ mod tests {
             "p",
             [Var!("x"), Fun!("f0", [Var!("w"), Var!("x"), Var!("y")])]
         );
-        let p2 = Pred!("p", [Var!("w"), Fun!("f0", [Var!("w")])]);
+        let p2 = Pred!("p", [Var!("w"), Fun!("f1", [Var!("w"), Var!("x"), Var!("y")])]);
         let p3 = Neg!(Pred!(
             "q",
-            [Var!("y0"), Fun!("f1", [Var!("w0"), Var!("x0"), Var!("y0")])]
+            [Var!("y0"), Fun!("f0", [Var!("w0"), Var!("x0"), Var!("y0")])]
         ));
-        let p4 = Pred!("p", [Var!("w0"), Fun!("f0", [Var!("w0")])]);
+        let p4 = Pred!("p", [Var!("w0"), Fun!("f1", [Var!("w0"), Var!("x0"), Var!("y0")])]);
         let c1 = Clause::new(vec![p1, p2]);
         let c2 = Clause::new(vec![p3, p4]);
         let result = vec![c1, c2];
