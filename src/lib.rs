@@ -67,7 +67,7 @@ mod tests {
                     )
                 )
             )
-        ); // F: forall x.(forall y.((p(x) \/ ~q(x)) /\ (~p(y) /\ q(y))))
+        ); // F: ~(forall x.(forall y.((p(x) \/ ~q(x)) /\ (~p(y) /\ q(y)))))
         assert!(is_valid(formula, 5).is_none());
     }
 }
