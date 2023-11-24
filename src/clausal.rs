@@ -37,7 +37,10 @@ impl Environment {
     pub fn add(&mut self, var: Var, term: Term) {
         let sym_tab = self.get_symbol_table();
         let sym_tab_len = sym_tab.len();
-        sym_tab.get_mut(sym_tab_len - 1).unwrap().insert(var, term);
+        sym_tab
+            .get_mut(sym_tab_len - 1)
+            .expect("Should always push a scope before adding a variable")
+            .insert(var, term);
     }
 
     pub fn find(&self, var: &Var) -> Option<Term> {
@@ -139,17 +142,17 @@ mod tests {
             )
         ))); // ~(~(exists y.(forall z.((p(z, y)) <-> (~(exists x.((p(z, x)) /\ (p(x, z)))))))))
 
-        let p1 = Neg!(Pred!("p", [Var!("z"), Obj!("a")])); // ~p(z, a)
+        let p1 = Neg!(Pred!("p", [Var!("z"), Obj!("o0")])); // ~p(z, o0)
         let p2 = Neg!(Pred!("p", [Var!("z"), Var!("x")])); // ~p(z, x)
         let p3 = Neg!(Pred!("p", [Var!("x"), Var!("z")])); // ~p(x, z)
-        let p4 = Pred!("p", [Var!("y"), Obj!("a")]); // p(y, a)
-        let p5 = Pred!("p", [Var!("y"), Fun!("f", [Var!("y")])]); // p(y, f(y))
-        let p6 = Pred!("p", [Var!("w"), Obj!("a")]); // p(w, a)
-        let p7 = Pred!("p", [Fun!("f", [Var!("w")]), Var!("w")]); // p(f(w), w)
+        let p4 = Pred!("p", [Var!("z0"), Obj!("o0")]); // p(z0, o0)
+        let p5 = Pred!("p", [Var!("z0"), Fun!("f0", [Var!("z0"), Var!("x0")])]); // p(z0, f0(z0, x0))
+        let p6 = Pred!("p", [Var!("z1"), Obj!("o0")]); // p(z1, o0)
+        let p7 = Pred!("p", [Fun!("f0", [Var!("z1"), Var!("x1")]), Var!("z1")]); // p(f0(z1), z1)
 
-        let c1 = Clause::new(vec![p1, p2, p3]); // C1: {~p(z, a), ~p(z, x), ~p(x, z)}
-        let c2 = Clause::new(vec![p4, p5]); // C2: {p(y, a), p(y, f(y))}
-        let c3 = Clause::new(vec![p6, p7]); // C3: {p(y, a), p(f(w), w)}
+        let c1 = Clause::new(vec![p1, p2, p3]); // C1: {~p(z, o0), ~p(z, x), ~p(x, z)}
+        let c2 = Clause::new(vec![p4, p5]); // C2: {p(z0, o0), p(z0, f0(z0))}
+        let c3 = Clause::new(vec![p6, p7]); // C3: {p(z1, o0), p(f0(z1), z1)}
 
         let expected_result = vec![c1, c2, c3];
         assert_eq!(to_clausal(formula), expected_result);
@@ -178,7 +181,7 @@ mod tests {
         ); // forall w. ((~exists x. exists y. forall z. (p(x, z) -> q(y, z))) \/ exists z. p(w, z))
         let p1 = Pred!(
             "p",
-            [Var!("x"), Fun!("f1", [Var!("w"), Var!("x"), Var!("y")])]
+            [Var!("x"), Fun!("f0", [Var!("w"), Var!("x"), Var!("y")])]
         );
         let p2 = Pred!("p", [Var!("w"), Fun!("f0", [Var!("w")])]);
         let p3 = Neg!(Pred!(
@@ -238,11 +241,9 @@ mod tests {
 
         let p1 = Neg!(Pred!("p", [Var!("x"), Var!("y")]));
         let p2 = Neg!(Pred!("p", [Var!("x"), Obj!("o0")]));
-        let p3 = Pred!("p", [Var!("x"), Fun!("f0", [Var!("x")])]);
-        let c1 = Clause::new(vec![p1]);
-        let c2 = Clause::new(vec![p2]);
-        let c3 = Clause::new(vec![p3]);
-        let result = vec![c1, c2, c3];
+        let p3 = Pred!("p", [Var!("x"), Fun!("f0", [Var!("x"), Var!("y")])]);
+        let c1 = Clause::new(vec![p1, p2, p3]);
+        let result = vec![c1];
         assert_eq!(to_clausal(formula), result);
     }
 }

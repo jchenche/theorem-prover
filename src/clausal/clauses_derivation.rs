@@ -10,7 +10,7 @@ type VarNameMap = HashMap<String, String>;
 pub fn derive_clauses(formula: Formula) -> Vec<Clause> {
     let mut used_vars = super::get_used_bound_vars(formula.clone());
     let mut quantifiers = HashMap::new();
-    let mut clauses = vec![];
+    let mut clauses = vec![vec![]];
     let no_quantifiers = drop_universal_quantifiers(formula, &mut quantifiers);
     gather_clauses(no_quantifiers, &mut clauses);
     let clauses = clauses
@@ -84,7 +84,10 @@ fn gather_clauses(formula: Formula, clauses: &mut Vec<Vec<Formula>>) {
 
 fn put_to_clause(formula: Formula, clauses: &mut Vec<Vec<Formula>>) {
     let last_clause_idx = clauses.len() - 1;
-    clauses.get_mut(last_clause_idx).unwrap().push(formula);
+    clauses
+        .get_mut(last_clause_idx)
+        .expect("The list of clauses should not be empty before adding any formula")
+        .push(formula);
 }
 
 fn rename_vars(
