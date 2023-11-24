@@ -1,8 +1,52 @@
 use std::collections::HashSet;
 
-use crate::lang::{Clause, Formula};
+use crate::{
+    lang::{Clause, Formula},
+    And, Iff, Imply, Neg, Or,
+};
 
 pub fn derive_clauses(formula: Formula) -> Vec<Clause> {
+    let mut used_vars = super::get_used_bound_vars(formula.clone());
+    let no_quantifiers = drop_universal_quantifiers(formula);
+    let clauses = formula_to_clauses(no_quantifiers, &mut used_vars);
+    let clauses_renamed = rename_vars(clauses);
+    return clauses_renamed;
+}
+
+fn drop_universal_quantifiers(formula: Formula) -> Formula {
+    match formula {
+        Formula::Pred(pred) => Formula::Pred(pred),
+        Formula::True => Formula::True,
+        Formula::False => Formula::False,
+        Formula::And(left, right) => And!(
+            drop_universal_quantifiers(*left),
+            drop_universal_quantifiers(*right)
+        ),
+        Formula::Or(left, right) => Or!(
+            drop_universal_quantifiers(*left),
+            drop_universal_quantifiers(*right)
+        ),
+        Formula::Neg(subformula) => Neg!(drop_universal_quantifiers(*subformula)),
+        Formula::Imply(left, right) => Imply!(
+            drop_universal_quantifiers(*left),
+            drop_universal_quantifiers(*right)
+        ),
+        Formula::Iff(left, right) => Iff!(
+            drop_universal_quantifiers(*left),
+            drop_universal_quantifiers(*right)
+        ),
+        Formula::Forall(_, subformula) => drop_universal_quantifiers(*subformula),
+        Formula::Exists(_, _) => {
+            unreachable!("There shouldn't be any existential quantifiers after skolemization")
+        }
+    }
+}
+
+fn formula_to_clauses(formula: Formula, used_vars: &mut HashSet<String>) -> Vec<Clause> {
+    todo!()
+}
+
+fn rename_vars(clauses: Vec<Clause>) -> Vec<Clause> {
     todo!()
 }
 
