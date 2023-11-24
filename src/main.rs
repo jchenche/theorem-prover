@@ -1,4 +1,5 @@
 use clap::Parser;
+use log::trace;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::PathBuf;
@@ -6,6 +7,7 @@ use std::{
     fs::File,
     io::{BufRead, BufReader},
 };
+
 use theorem_prover::lang::Formula;
 
 mod parsing;
@@ -24,11 +26,15 @@ struct Prover {
 }
 
 fn main() {
+    log4rs::init_file("log4rs.yml", Default::default()).unwrap();
+    trace!("============================== BEGIN prover ==============================");
+
     let prover = Prover::parse();
     let formulas = get_formulas(prover.formulas);
 
     let mut output = String::new();
     for (index, formula) in formulas.into_iter().enumerate() {
+        trace!("---------- Proving {formula} ----------");
         if index != 0 {
             output += "\n";
         }
@@ -49,6 +55,8 @@ fn main() {
         .open("output.txt")
         .expect("Unable to open file for output");
     file.write_all(output.as_bytes()).unwrap();
+
+    trace!("============================== END prover ==============================");
 }
 
 fn get_formulas(file_path: PathBuf) -> Vec<Formula> {

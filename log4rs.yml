@@ -1,0 +1,16 @@
+appenders:
+  my_file_logger:
+    kind: rolling_file
+    path: "prover.log"
+    encoder:
+      pattern: "{d(%Y-%m-%d %H:%M:%S)(utc)} - {h({l})}: {m}{n}"
+    policy:
+      trigger:
+        kind: size
+        limit: 100kb
+      roller:
+        kind: delete
+root:
+  level: trace
+  appenders:
+    - my_file_logger

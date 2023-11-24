@@ -1,3 +1,4 @@
+use log::trace;
 use pest::iterators::Pairs;
 use pest::pratt_parser::PrattParser;
 use pest::Parser;
@@ -8,7 +9,7 @@ use theorem_prover::lang::{Formula, Fun, Obj, Pred, Term, Var};
 pub struct FormulaParser;
 
 pub fn parse(formula: String) -> Option<Formula> {
-    println!("=== Formula {formula} ===");
+    trace!("Parsing {formula}");
     let pratt = create_pratt_parser();
     match FormulaParser::parse(Rule::program, &formula) {
         Ok(mut pairs) => Some(parse_formula(pairs.next().unwrap().into_inner(), &pratt)),

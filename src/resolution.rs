@@ -1,3 +1,5 @@
+use log::debug;
+
 use crate::{
     lang::{Clause, Formula},
     unification::{most_general_unifier, substitute},
@@ -14,14 +16,14 @@ pub fn refute_resolution(mut clauses: Vec<Clause>, limit_in_seconds: u64) -> Opt
 
     loop {
         counter += 1;
-        println!("\n------ Round {} of resolution ------\n", counter);
+        debug!("\n------ Round {} of resolution ------\n", counter);
 
         let mut new_clauses = Vec::new();
         for i in 0..clauses.len() {
             for j in (i + 1)..clauses.len() {
                 // end the resolution process if it has already exceeded the time limit
                 if Instant::now() - start >= Duration::from_secs(limit_in_seconds) {
-                    println!(
+                    debug!(
                         "\n------ Unable to determine whether there is a resolution refutation within the time limit ------ \n"
                     );
                     return None;
@@ -29,16 +31,16 @@ pub fn refute_resolution(mut clauses: Vec<Clause>, limit_in_seconds: u64) -> Opt
 
                 let clause1 = clauses.get(i).unwrap();
                 let clause2 = clauses.get(j).unwrap();
-                println!("Attempting to resolve {} and {}", clause1, clause2);
+                debug!("Attempting to resolve {} and {}", clause1, clause2);
 
                 // check if the 2 chosen clauses have already been resolved before
                 if resolved.contains(&(clause1.get_id(), clause2.get_id())) {
-                    println!("Clauses have been resolved before! Skipping...");
+                    debug!("Clauses have been resolved before! Skipping...");
                     continue;
                 }
 
                 let resolved_clauses = resolve_clauses(clause1, clause2);
-                println!(
+                debug!(
                     "New clauses from resolution: {}",
                     to_string(&resolved_clauses)
                 );
@@ -46,7 +48,7 @@ pub fn refute_resolution(mut clauses: Vec<Clause>, limit_in_seconds: u64) -> Opt
                 for clause in resolved_clauses {
                     // finish resolution if there exists an empty clause
                     if clause.get_formulas().is_empty() {
-                        println!(
+                        debug!(
                             "\n------ Successfully found a resolution refutation {} ------\n",
                             clause
                         );
@@ -61,13 +63,13 @@ pub fn refute_resolution(mut clauses: Vec<Clause>, limit_in_seconds: u64) -> Opt
         }
 
         if new_clauses.is_empty() {
-            println!("\n------ No resolution refutation as there is no new clause after a round of resolution ------ \n");
+            debug!("\n------ No resolution refutation as there is no new clause after a round of resolution ------ \n");
             return Some(false);
         }
 
         // add new clauses obtained from resolution into the vector of clauses
         clauses.append(&mut new_clauses);
-        println!(
+        debug!(
             "\n------ Set of clauses after round {} of resolution: {} ------\n",
             counter,
             to_string(&clauses)
