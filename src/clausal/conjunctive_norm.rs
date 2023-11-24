@@ -137,7 +137,7 @@ mod tests {
         );
         // forall z. forall x.((
         //     (~p(z, a) \/ (~p(z, x) \/ ~p(x, z)))
-        //     /\ (p(z, a) \/ (p(z, f(z)), p(f(z), z)))
+        //     /\ (p(z, a) \/ (p(z, f(z)) /\ p(f(z), z)))
         // ))
 
         let result_formula = Forall!(
@@ -145,22 +145,22 @@ mod tests {
             Forall!(
                 "x",
                 And!(
-                    And!(
+                    Or!(
+                        Neg!(Pred!("p", [Var!("z"), Obj!("a")])),
                         Or!(
-                            Or!(
-                                Neg!(Pred!("p", [Var!("z"), Obj!("a")])),
-                                Neg!(Pred!("p", [Var!("z"), Var!("x")]))
-                            ),
+                            Neg!(Pred!("p", [Var!("z"), Var!("x")])),
                             Neg!(Pred!("p", [Var!("x"), Var!("z")]))
-                        ),
+                        )
+                    ),
+                    And!(
                         Or!(
                             Pred!("p", [Var!("z"), Obj!("a")]),
                             Pred!("p", [Var!("z"), Fun!("f", [Var!("z")])])
+                        ),
+                        Or!(
+                            Pred!("p", [Var!("z"), Obj!("a")]),
+                            Pred!("p", [Fun!("f", [Var!("z")]), Var!("z")])
                         )
-                    ),
-                    Or!(
-                        Pred!("p", [Var!("z"), Obj!("a")]),
-                        Pred!("p", [Fun!("f", [Var!("z")]), Var!("z")])
                     )
                 )
             )
