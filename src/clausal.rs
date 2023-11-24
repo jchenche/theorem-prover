@@ -59,13 +59,13 @@ pub fn to_clausal(formula: Formula) -> Vec<Clause> {
     return clausal_form;
 }
 
-fn get_used_bound_vars(formula: Formula) -> HashSet<Var> {
+fn get_used_bound_vars(formula: Formula) -> HashSet<String> {
     let mut used_vars = HashSet::new();
     gather_used_bound_vars(formula, &mut used_vars);
     return used_vars;
 }
 
-fn gather_used_bound_vars(formula: Formula, used_vars: &mut HashSet<Var>) {
+fn gather_used_bound_vars(formula: Formula, used_vars: &mut HashSet<String>) {
     match formula {
         Formula::Pred(_) => {}
         Formula::True => {}
@@ -90,11 +90,11 @@ fn gather_used_bound_vars(formula: Formula, used_vars: &mut HashSet<Var>) {
             gather_used_bound_vars(*right, used_vars);
         }
         Formula::Forall(var, subformula) => {
-            used_vars.insert(var);
+            used_vars.insert(var.to_string());
             gather_used_bound_vars(*subformula, used_vars);
         }
         Formula::Exists(var, subformula) => {
-            used_vars.insert(var);
+            used_vars.insert(var.to_string());
             gather_used_bound_vars(*subformula, used_vars);
         }
     }

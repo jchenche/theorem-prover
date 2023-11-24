@@ -112,7 +112,7 @@ fn rename_bound_vars(
     formula: Formula,
     env: &mut Environment,
     seen_vars: &mut HashSet<Var>,
-    used_vars: &mut HashSet<Var>,
+    used_vars: &mut HashSet<String>,
 ) -> Formula {
     match formula {
         Formula::Pred(pred) => Formula::Pred(Pred::new(
@@ -178,14 +178,13 @@ fn rename_bound_vars(
     }
 }
 
-fn find_new_var(var: &Var, used_vars: &mut HashSet<Var>) -> Var {
+fn find_new_var(var: &Var, used_vars: &mut HashSet<String>) -> Var {
     let mut suffix = 0;
     loop {
         let new_var = format!("{}{}", var, suffix.to_string());
-        if !used_vars.contains(&Var::new(&new_var)) {
-            let new_var = Var::new(&new_var);
+        if !used_vars.contains(&new_var) {
             used_vars.insert(new_var.clone());
-            return new_var;
+            return Var::new(&new_var);
         }
         suffix += 1;
     }
@@ -195,7 +194,7 @@ fn rename_bound_vars_in_terms(
     term: &Term,
     env: &mut Environment,
     seen_vars: &mut HashSet<Var>,
-    used_vars: &mut HashSet<Var>,
+    used_vars: &mut HashSet<String>,
 ) -> Term {
     match term {
         Term::Obj(_) => term.clone(),
@@ -394,12 +393,12 @@ mod tests {
                     "y",
                     And!(
                         Pred!("p", [Var!("x"), Var!("y")]),
-                        Pred!("p", [Var!("x"), Var!("z")])
+                        Pred!("p", [Var!("x"), Obj!("a")])
                     )
                 )),
                 Exists!("y", Pred!("p", [Var!("x"), Var!("y")]))
             )
-        ); // forall x . (~(exists y . (p(x, y) /\ p(x, z))) \/ exists y . p(x, y))
+        ); // forall x. (~(exists y. (p(x, y) /\ p(x, a))) \/ exists y. p(x, y))
         let expected_result = Forall!(
             "x",
             Forall!(
@@ -409,13 +408,13 @@ mod tests {
                     Or!(
                         Or!(
                             Neg!(Pred!("p", [Var!("x"), Var!("y")])),
-                            Neg!(Pred!("p", [Var!("x"), Var!("z")]))
+                            Neg!(Pred!("p", [Var!("x"), Obj!("a")]))
                         ),
                         Pred!("p", [Var!("x"), Var!("y0")])
                     )
                 )
             )
-        ); // forall x . (forall y . (exists y0. ((~p(x, y) \/ ~p(x, z)) \/ p(x,y0))))
+        ); // forall x. (forall y. (exists y0. ((~p(x, y) \/ ~p(x, a)) \/ p(x,y0))))
         assert_eq!(to_pnf(formula), expected_result);
     }
 
