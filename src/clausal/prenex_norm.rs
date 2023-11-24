@@ -12,11 +12,12 @@ enum Quantifier {
     AnExists,
 }
 
-pub fn to_pnf(formula: Formula, used_vars: &mut HashSet<Var>) -> Formula {
+pub fn to_pnf(formula: Formula) -> Formula {
+    let mut used_vars = super::get_used_bound_vars(formula.clone());
     let nnf = to_nnf(formula);
     let mut seen_vars = HashSet::new();
     let mut env = Environment::new();
-    let bound_vars_renamed = rename_bound_vars(nnf, &mut env, &mut seen_vars, used_vars);
+    let bound_vars_renamed = rename_bound_vars(nnf, &mut env, &mut seen_vars, &mut used_vars);
     let pnf = move_quantifiers_to_front(bound_vars_renamed);
     return pnf;
 }
@@ -381,8 +382,7 @@ mod tests {
             "x",
             Or!(Neg!(Pred!("p", [Obj!("a")])), Pred!("q", [Var!("x")]))
         ); // forall x. (~p(a) \/ q(x))
-        let mut used_vars = HashSet::from([Var::new("x")]);
-        assert_eq!(to_pnf(formula, &mut used_vars), expected_result);
+        assert_eq!(to_pnf(formula), expected_result);
     }
 
     #[test]
@@ -416,8 +416,7 @@ mod tests {
                 )
             )
         ); // forall x . (forall y . (exists y0. ((~p(x, y) \/ ~p(x, z)) \/ p(x,y0))))
-        let mut used_vars = HashSet::from([Var::new("x"), Var::new("y"), Var::new("z")]);
-        assert_eq!(to_pnf(formula, &mut used_vars), expected_result);
+        assert_eq!(to_pnf(formula), expected_result);
     }
 
     #[test]
@@ -454,8 +453,7 @@ mod tests {
                 )
             )
         ); // exists w. forall y. exists z. (p(y) /\ (r(z) /\ ~q(y, z, w)))
-        let mut used_vars = HashSet::from([Var::new("w"), Var::new("y"), Var::new("z")]);
-        assert_eq!(to_pnf(formula, &mut used_vars), result_formula);
+        assert_eq!(to_pnf(formula), result_formula);
     }
 
     #[test]
@@ -501,8 +499,6 @@ mod tests {
                 )
             )
         ); // forall w. forall x. forall y. exists z. exists z0. ((p(x, z) /\ ~q(y, z)) \/ p(w, z0))
-        let mut used_vars =
-            HashSet::from([Var::new("w"), Var::new("x"), Var::new("y"), Var::new("z")]);
-        assert_eq!(to_pnf(formula, &mut used_vars), result_formula);
+        assert_eq!(to_pnf(formula), result_formula);
     }
 }

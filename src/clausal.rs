@@ -52,8 +52,7 @@ impl Environment {
 
 pub fn to_clausal(formula: Formula) -> Vec<Clause> {
     let sentence = remove_free_vars::remove_free_vars(formula);
-    let mut used_vars = get_used_bound_vars(sentence.clone());
-    let pnf = prenex_norm::to_pnf(sentence, &mut used_vars);
+    let pnf = prenex_norm::to_pnf(sentence);
     let skolem_norm = skolem_norm::skolemize(pnf);
     let cnf = conjunctive_norm::to_cnf(skolem_norm);
     let clausal_form = clauses_derivation::derive_clauses(cnf);

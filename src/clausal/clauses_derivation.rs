@@ -1,6 +1,6 @@
-use crate::lang::{Clause, Formula};
+use std::collections::HashSet;
 
-use super::Environment;
+use crate::lang::{Clause, Formula};
 
 pub fn derive_clauses(formula: Formula) -> Vec<Clause> {
     todo!()
