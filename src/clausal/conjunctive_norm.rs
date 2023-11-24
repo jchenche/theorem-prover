@@ -63,7 +63,7 @@ mod tests {
                     )
                 )
             )
-        ); // forall x. forall w. forall y. forall z. (p(x) \/ (p(w) /\ p(y) /\ p(z)))
+        ); // forall x. forall w. forall y. forall z. (p(x) \/ ((p(w) /\ p(y)) /\ p(z)))
         let result_formula = Forall!(
             "x",
             Forall!(
@@ -82,7 +82,7 @@ mod tests {
                     )
                 )
             )
-        ); // forall x. forall w. forall y. forall z. ((p(x) \/ p(w)) /\ (p(x) \/ p(y)) /\ (p(x) \/ p(z))
+        ); // forall x. forall w. forall y. forall z. (((p(x) \/ p(w)) /\ (p(x) \/ p(y))) /\ (p(x) \/ p(z)))
         assert_eq!(to_cnf(formula), result_formula);
     }
 
@@ -99,15 +99,15 @@ mod tests {
             "x",
             And!(
                 And!(
-                    And!(
-                        Or!(Neg!(Pred!("p", [Var!("x")])), Neg!(Pred!("r", [Var!("x")]))),
-                        Or!(Neg!(Pred!("p", [Var!("x")])), Pred!("r", [Var!("x")]))
-                    ),
-                    Or!(Pred!("q", [Var!("x")]), Neg!(Pred!("r", [Var!("x")])))
+                    Or!(Neg!(Pred!("p", [Var!("x")])), Neg!(Pred!("r", [Var!("x")]))),
+                    Or!(Neg!(Pred!("p", [Var!("x")])), Pred!("r", [Var!("x")]))
                 ),
-                Or!(Pred!("q", [Var!("x")]), Pred!("r", [Var!("x")]))
+                And!(
+                    Or!(Pred!("q", [Var!("x")]), Neg!(Pred!("r", [Var!("x")]))),
+                    Or!(Pred!("q", [Var!("x")]), Pred!("r", [Var!("x")]))
+                )
             )
-        ); // forall x. ((~p(x) \/ ~r(x)) /\ (~p(x) \/ r(x)) /\ (q(x) \/~r(x)) /\ (q(x) \/ r(x)))
+        ); // forall x. (((~p(x) \/ ~r(x)) /\ (~p(x) \/ r(x))) /\ ((q(x) \/ ~r(x)) /\ (q(x) \/ r(x))))
         assert_eq!(to_cnf(formula), result_formula);
     }
 
