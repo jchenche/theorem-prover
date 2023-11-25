@@ -17,7 +17,6 @@ pub enum ProverError {
 
 pub fn is_valid(formula: Formula, limit_in_seconds: u64) -> Result<Option<bool>, ProverError> {
     if !check_arity(&formula) {
-        // panic!("Same predicates or functions must have the same signature/arity");
         return Err(ProverError::ArityError);
     }
     trace!("Negating {formula}");
@@ -42,7 +41,6 @@ fn check_arity_in_formula(
             if let Some(arity) = pred_arity.get(pred.get_id()) {
                 if arity != &pred.get_args().len() {
                     return false;
-                    // panic!("Same predicates must have the same signature/arity")
                 }
             } else {
                 pred_arity.insert(pred.get_id().to_string(), pred.get_args().len());
@@ -87,7 +85,6 @@ fn check_arity_in_term(term: &Term, pred_arity: &mut Arity, func_arity: &mut Ari
             if let Some(arity) = func_arity.get(f.get_id()) {
                 if arity != &f.get_args().len() {
                     return false;
-                    // panic!("Same functions must have the same signature/arity")
                 }
             } else {
                 func_arity.insert(f.get_id().to_string(), f.get_args().len());
