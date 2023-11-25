@@ -34,7 +34,9 @@ fn check_formula(formula: &Formula, pred_arity: &mut Arity, func_arity: &mut Ari
             } else {
                 pred_arity.insert(pred.get_id().to_string(), pred.get_args().len());
             }
-            pred.get_args().iter().for_each(|arg| check_term(arg, pred_arity, func_arity))
+            pred.get_args()
+                .iter()
+                .for_each(|arg| check_term(arg, pred_arity, func_arity))
         }
         Formula::True => {}
         Formula::False => {}
@@ -72,7 +74,9 @@ fn check_term(term: &Term, pred_arity: &mut Arity, func_arity: &mut Arity) {
             } else {
                 func_arity.insert(f.get_id().to_string(), f.get_args().len());
             }
-            f.get_args().iter().for_each(|arg| check_term(arg, pred_arity, func_arity))
+            f.get_args()
+                .iter()
+                .for_each(|arg| check_term(arg, pred_arity, func_arity))
         }
     }
 }
