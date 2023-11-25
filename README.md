@@ -15,12 +15,12 @@ $ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 2. Output the help menu
 ```sh
-$ cargo run -- help 
+$ cargo run -- --help
 ```
 
 3. Run our prover with sample formulas (the result is also published to `output.txt`)
 ```sh
-$ cargo run -- formulas.txt 
+$ cargo run -- formulas.txt
 ```
 
 4. Run unit tests (take up to 5 seconds)
