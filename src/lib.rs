@@ -144,7 +144,7 @@ mod tests {
                     Or!(Neg!(Pred!("p", [Var!("y")])), Pred!("q", [Var!("y")]))
                 )
             )
-        )); // F: ~(forall x.(forall y.((p(x) \/ ~q(x)) /\ (~p(y) /\ q(y)))))
+        )); // F: ~(forall x.(forall y.((p(x) \/ ~q(x)) /\ (~p(y) \/ q(y)))))
         assert!(is_valid(formula, 5) == Err(ProverError::TimeoutError));
     }
 }
