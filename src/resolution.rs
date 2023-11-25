@@ -3,13 +3,17 @@ use log::{debug, trace};
 use crate::{
     lang::{Clause, Formula},
     unification::{most_general_unifier, substitute},
+    ProverError,
 };
 use std::{
     collections::HashSet,
     time::{Duration, Instant},
 };
 
-pub fn refute_resolution(mut clauses: Vec<Clause>, limit_in_seconds: u64) -> Option<bool> {
+pub fn refute_resolution(
+    mut clauses: Vec<Clause>,
+    limit_in_seconds: u64,
+) -> Result<bool, ProverError> {
     trace!(
         "Attempting resolution refutation starting with the following {} clauses:",
         clauses.len()
@@ -32,7 +36,7 @@ pub fn refute_resolution(mut clauses: Vec<Clause>, limit_in_seconds: u64) -> Opt
                     debug!(
                         "\n------ Unable to determine whether there is a resolution refutation within the time limit ------ \n"
                     );
-                    return None;
+                    return Err(ProverError::TimeoutError);
                 }
 
                 let clause1 = clauses.get(i).unwrap();
@@ -58,7 +62,7 @@ pub fn refute_resolution(mut clauses: Vec<Clause>, limit_in_seconds: u64) -> Opt
                             "\n------ Successfully found a resolution refutation {} ------\n",
                             clause
                         );
-                        return Some(true);
+                        return Ok(true);
                     }
                     new_clauses.push(clause);
                 }
@@ -70,7 +74,7 @@ pub fn refute_resolution(mut clauses: Vec<Clause>, limit_in_seconds: u64) -> Opt
 
         if new_clauses.is_empty() {
             debug!("\n------ No resolution refutation as there is no new clause after a round of resolution ------ \n");
-            return Some(false);
+            return Ok(false);
         }
 
         // add new clauses obtained from resolution into the vector of clauses
@@ -296,7 +300,7 @@ mod tests {
         let c1 = Clause::new(vec![p1, p2]); // C1: {~p(x), q(x)}
         let c2 = Clause::new(vec![p3, p4]); // C2: {~q(y), p(y)}
 
-        assert!(refute_resolution(vec![c1, c2], 5).is_none());
+        assert!(refute_resolution(vec![c1, c2], 5) == Err(ProverError::TimeoutError));
     }
 
     #[test]

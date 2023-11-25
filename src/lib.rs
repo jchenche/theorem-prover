@@ -9,20 +9,20 @@ mod unification;
 
 type Arity = HashMap<String, usize>;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum ProverError {
     ArityError,
-    OtherError(String),
+    TimeoutError,
 }
 
-pub fn is_valid(formula: Formula, limit_in_seconds: u64) -> Result<Option<bool>, ProverError> {
+pub fn is_valid(formula: Formula, limit_in_seconds: u64) -> Result<bool, ProverError> {
     if !check_arity(&formula) {
         return Err(ProverError::ArityError);
     }
     trace!("Negating {formula}");
     let negated = Formula::Neg(Box::new(formula));
     let clausal = clausal::to_clausal(negated);
-    Ok(resolution::refute_resolution(clausal, limit_in_seconds))
+    resolution::refute_resolution(clausal, limit_in_seconds)
 }
 
 fn check_arity(formula: &Formula) -> bool {
@@ -121,7 +121,7 @@ mod tests {
                 )
             )
         )); // F : ~(exists y.(forall z.((p(z, y)) <-> (~(exists x.((p(z, x)) /\ (p(x, z))))))))
-        assert!(is_valid(formula, DEFAULT_LIMIT).unwrap().unwrap());
+        assert!(is_valid(formula, DEFAULT_LIMIT).unwrap());
     }
 
     #[test]
@@ -130,7 +130,7 @@ mod tests {
             Exists!("x", Pred!("p", [Var!("x")])),
             Forall!("x", Pred!("p", [Var!("x")]))
         ); // F : exists x.(p(x)) -> forall x.(p(x))
-        assert!(!is_valid(formula, DEFAULT_LIMIT).unwrap().unwrap());
+        assert!(!is_valid(formula, DEFAULT_LIMIT).unwrap());
     }
 
     #[test]
@@ -145,6 +145,6 @@ mod tests {
                 )
             )
         )); // F: ~(forall x.(forall y.((p(x) \/ ~q(x)) /\ (~p(y) /\ q(y)))))
-        assert!(is_valid(formula, 5).unwrap().is_none());
+        assert!(is_valid(formula, 5) == Err(ProverError::TimeoutError));
     }
 }

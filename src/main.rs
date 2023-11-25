@@ -39,19 +39,10 @@ fn main() {
         }
         output += formula.to_string().as_str();
         match theorem_prover::is_valid(formula, prover.limit) {
-            Ok(validity) => match validity {
-                Some(true) => output += " is valid.",
-                Some(false) => output += " is invalid.",
-                None => output += " may be valid or invalid. Since first order logic is undecidable, the program may run forever, so it can't tell us.",
-            },
-            Err(err) => {
-                output += ". Error: ";
-                match err {
-                    ProverError::ArityError => output += "Same predicates or functions must have the same signature/arity",
-                    _ => output += "Got some unknown errors while validating the formula",
-                }
-                output += ". Skipping this formula..."
-            }
+            Ok(true) => output += " is valid.",
+            Ok(false) => output += " is invalid.",
+            Err(ProverError::TimeoutError) => output += " may be valid or invalid. Since first order logic is undecidable, the program may run forever, so it can't tell us.",
+            Err(ProverError::ArityError) => output += ". Same predicates or functions must have the same signature/arity. Skipping this formula...",
         }
     }
     println!("{output}");
