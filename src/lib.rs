@@ -1,10 +1,14 @@
-use lang::Formula;
+use std::collections::HashMap;
+
+use lang::{Formula, Term};
 use log::trace;
 
 mod clausal;
 pub mod lang;
 mod resolution;
 mod unification;
+
+type Arity = HashMap<String, usize>;
 
 pub fn is_valid(formula: Formula, limit_in_seconds: u64) -> Option<bool> {
     validate_formula(&formula);
@@ -15,8 +19,62 @@ pub fn is_valid(formula: Formula, limit_in_seconds: u64) -> Option<bool> {
 }
 
 fn validate_formula(formula: &Formula) {
-    // To be implemented later (just panic if it's not right for now)
-    assert!(true, "The formula is not right. Make sure that functions and predicates of the same symbol have the same signatures");
+    let mut pred_arity = HashMap::new();
+    let mut func_arity = HashMap::new();
+    check_formula(formula, &mut pred_arity, &mut func_arity);
+}
+
+fn check_formula(formula: &Formula, pred_arity: &mut Arity, func_arity: &mut Arity) {
+    match formula {
+        Formula::Pred(pred) => {
+            if let Some(arity) = pred_arity.get(pred.get_id()) {
+                if arity != &pred.get_args().len() {
+                    panic!("Same predicates must have the same signature/arity")
+                }
+            } else {
+                pred_arity.insert(pred.get_id().to_string(), pred.get_args().len());
+            }
+            pred.get_args().iter().for_each(|arg| check_term(arg, pred_arity, func_arity))
+        }
+        Formula::True => {}
+        Formula::False => {}
+        Formula::And(left, right) => {
+            check_formula(left, pred_arity, func_arity);
+            check_formula(right, pred_arity, func_arity);
+        }
+        Formula::Or(left, right) => {
+            check_formula(left, pred_arity, func_arity);
+            check_formula(right, pred_arity, func_arity);
+        }
+        Formula::Neg(subformula) => check_formula(subformula, pred_arity, func_arity),
+        Formula::Imply(left, right) => {
+            check_formula(left, pred_arity, func_arity);
+            check_formula(right, pred_arity, func_arity);
+        }
+        Formula::Iff(left, right) => {
+            check_formula(left, pred_arity, func_arity);
+            check_formula(right, pred_arity, func_arity);
+        }
+        Formula::Forall(_, subformula) => check_formula(subformula, pred_arity, func_arity),
+        Formula::Exists(_, subformula) => check_formula(subformula, pred_arity, func_arity),
+    }
+}
+
+fn check_term(term: &Term, pred_arity: &mut Arity, func_arity: &mut Arity) {
+    match term {
+        Term::Obj(_) => {}
+        Term::Var(_) => {}
+        Term::Fun(f) => {
+            if let Some(arity) = func_arity.get(f.get_id()) {
+                if arity != &f.get_args().len() {
+                    panic!("Same functions must have the same signature/arity")
+                }
+            } else {
+                func_arity.insert(f.get_id().to_string(), f.get_args().len());
+            }
+            f.get_args().iter().for_each(|arg| check_term(arg, pred_arity, func_arity))
+        }
+    }
 }
 
 #[cfg(test)]
