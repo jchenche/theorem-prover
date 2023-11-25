@@ -7,8 +7,7 @@ use std::{
     fs::File,
     io::{BufRead, BufReader},
 };
-
-use theorem_prover::lang::Formula;
+use theorem_prover::{lang::Formula, ProverError};
 
 mod parsing;
 
@@ -40,9 +39,19 @@ fn main() {
         }
         output += formula.to_string().as_str();
         match theorem_prover::is_valid(formula, prover.limit) {
-            Some(true) => output += " is valid.",
-            Some(false) => output += " is invalid.",
-            None => output += " may be valid or invalid. Since first order logic is undecidable, the program may run forever, so it can't tell us.",
+            Ok(validity) => match validity {
+                Some(true) => output += " is valid.",
+                Some(false) => output += " is invalid.",
+                None => output += " may be valid or invalid. Since first order logic is undecidable, the program may run forever, so it can't tell us.",
+            },
+            Err(err) => {
+                output += ". Error: ";
+                match err {
+                    ProverError::ArityError => output += "Same predicates or functions must have the same signature/arity",
+                    _ => output += "Got some unknown errors while validating the formula",
+                }
+                output += ". Skipping this formula..."
+            }
         }
     }
     println!("{output}");
