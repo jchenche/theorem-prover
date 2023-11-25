@@ -29,6 +29,6 @@ $ cargo test
 ```
 
 5. Run end-to-end tests (take up to 60 seconds)
-```
+```sh
 $ ./e2e_test.sh
 ```
