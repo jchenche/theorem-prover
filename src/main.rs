@@ -42,7 +42,7 @@ fn main() {
             Ok(true) => output += " is valid.",
             Ok(false) => output += " is invalid.",
             Err(ProverError::TimeoutError) => output += " may be valid or invalid. Since first order logic is undecidable, the program may run forever, so it can't tell us.",
-            Err(ProverError::ArityError) => output += ". Same predicates or functions must have the same signature/arity. Skipping this formula...",
+            Err(ProverError::ArityError) => output += " has arity issues. Make sure the same predicates or functions have the same arity.",
         }
     }
     println!("{output}");
