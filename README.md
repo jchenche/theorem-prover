@@ -1,34 +1,25 @@
 # Theorem Prover for First-Order Logic
 
-Team: Jimmy Chen Chen, Khang Le, Nazanin Yousefian.
+This project stemmed from an open-ended final project for a graduate course, Formal Verification (CMPT 777). We chose this specific project because it seemed the most interesting. For a description of the code and algorithm, refer to [report.pdf](report.pdf). The contributors are Jimmy Chen Chen (main), Khang Le (major), and Nazanin Yousefian (minor).
 
-Course: Formal Verification (CMPT 777).
+## Usage
 
-We chose this project because it's interesting. For a description of the code and algorithm, refer to [report.pdf](report.pdf).
-
-## How to run?
-
-1. Install [Rust](https://www.rust-lang.org/tools/install)
-```sh
-$ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-```
-
-2. Output the help menu
+- Output the help menu
 ```sh
 $ cargo run -- --help
 ```
 
-3. Run our prover with sample formulas (the result is also published to `output.txt`)
+- Run our prover with sample formulas (refer to [first_order.pest](first_order.pest) or [report.pdf](report.pdf) for the syntax to write your own)
 ```sh
 $ cargo run -- formulas.txt
 ```
 
-4. Run unit tests (take up to 5 seconds)
+- Run unit tests (5 seconds)
 ```sh
 $ cargo test
 ```
 
-5. Run end-to-end tests (take up to 60 seconds)
+- Run end-to-end tests (60 seconds)
 ```sh
 $ ./e2e_test.sh
 ```
