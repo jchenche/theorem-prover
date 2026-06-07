@@ -1,6 +1,6 @@
 # Theorem Prover for First-Order Logic
 
-This project stemmed from an open-ended final project for a graduate course, Formal Verification (CMPT 777), where I got a 100% average. We chose this specific project because it seemed the most interesting. For a description of the code and algorithm, refer to [report.pdf](report.pdf). The contributors are Jimmy Chen Chen (main), Khang Le (major), and Nazanin Yousefian (minor).
+A theorem prover for the full version of first-order logic, available both as a binary and library. For a description of the code and algorithm, refer to [report.pdf](report.pdf). The repository is at https://github.com/jchenche/theorem-prover.
 
 ## Usage
 

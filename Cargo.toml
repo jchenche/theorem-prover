@@ -1,7 +1,7 @@
 [package]
 name = "theorem-prover"
 license = "MIT"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "Implementation of a theorem prover for first-order logic."
 
