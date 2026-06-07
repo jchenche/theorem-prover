@@ -1,3 +1,8 @@
+//! # Theorem Prover for First-Order Logic
+//!
+//! `theorem_prover` provides utilities to create formulas and pass them to `is_valid`
+//! to decide if the given formula is valid.
+
 use lang::{Formula, Term};
 use log::trace;
 use std::collections::HashMap;
@@ -15,6 +20,22 @@ pub enum ProverError {
     TimeoutError,
 }
 
+/// Check if a given formula is valid
+///
+/// Must pass a time limit in seconds to avoid infinite loops (default is 60)
+///
+/// # Example
+///
+/// ```
+/// use theorem_prover::{lang::{Formula, Pred, Term, Var}, ProverError, Imply, Exists, Forall, Pred, Var};
+/// let formula = Imply!(
+///     Exists!("x", Pred!("p", [Var!("x")])),
+///     Forall!("x", Pred!("p", [Var!("x")]))
+/// );
+/// ```
+///
+/// `is_valid(formula, 5).unwrap()` will evaluate to `false`
+///
 pub fn is_valid(formula: Formula, limit_in_seconds: u64) -> Result<bool, ProverError> {
     if !check_arity(&formula) {
         return Err(ProverError::ArityError);

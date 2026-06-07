@@ -1,7 +1,9 @@
 [package]
 name = "theorem-prover"
+license = "MIT"
 version = "0.1.0"
 edition = "2021"
+description = "Implementation of a theorem prover for first-order logic."
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
